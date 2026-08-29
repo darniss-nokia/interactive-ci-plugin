@@ -1,0 +1,118 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Configuration form for the interactiveView pipeline step. Its presence lets the Pipeline Snippet
+  Generator ("Generate Pipeline Script") render a form for the step. Fields map to the step's
+  @DataBoundSetter properties. Provide exactly one source: a single File, an Includes glob, or a Dir.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+  <f:entry title="File" field="file">
+    <f:textbox/>
+    <f:description>
+      Workspace-relative path to a single file to publish for review (e.g. reports/summary.md). The file
+      is snapshotted into Jenkins' durable store, so the review survives workspace/build cleanup. Use
+      Includes or Dir instead to publish several (including dynamically generated) files at once.
+    </f:description>
+  </f:entry>
+
+  <f:entry title="Includes (glob)" field="includes">
+    <f:textbox/>
+    <f:description>
+      Ant-style include pattern(s), comma-separated, for publishing many files at once
+      (e.g. reports/**/*.md). One review is created per matched file, grouped under the report name.
+      Mutually exclusive with File.
+    </f:description>
+  </f:entry>
+
+  <f:entry title="Excludes (glob)" field="excludes">
+    <f:textbox/>
+    <f:description>Optional Ant-style exclude pattern(s) applied to the Includes/Dir match.</f:description>
+  </f:entry>
+
+  <f:entry title="Dir" field="dir">
+    <f:textbox/>
+    <f:description>
+      Workspace-relative folder to publish (sugar for "dir/**"). Every file under it — including files
+      generated during the build — becomes a grouped review. Mutually exclusive with File.
+    </f:description>
+  </f:entry>
+
+  <f:entry title="Mode" field="mode">
+    <f:select/>
+    <f:description>
+      review (default) — reviewers approve/reject/acknowledge/request changes; or info — a read-only
+      viewer (still commentable) with no decision. Blocking (wait) requires review mode.
+    </f:description>
+  </f:entry>
+
+  <f:entry title="Report name" field="reportName">
+    <f:textbox/>
+    <f:description>
+      Optional display name for the review (or the shared group name for a glob/dir). Defaults to the
+      file name, or the folder for a dir.
+    </f:description>
+  </f:entry>
+
+  <f:entry title="Title" field="title">
+    <f:textbox/>
+    <f:description>Optional heading shown on the review page. Defaults to the report name.</f:description>
+  </f:entry>
+
+  <f:entry title="Format" field="format">
+    <f:textbox/>
+    <f:description>
+      Optional override: markdown, html, text or code. Leave blank to auto-detect from the file
+      extension. Markdown is rendered to safe HTML; every other format (HTML and any programming
+      language included) is shown as escaped, syntax-highlighted source — never executed.
+    </f:description>
+  </f:entry>
+
+  <f:entry>
+    <f:checkbox field="commentable" title="Allow comments" default="true"/>
+    <f:description>Let reviewers add Confluence-style inline and general comments.</f:description>
+  </f:entry>
+
+  <f:entry>
+    <f:checkbox field="editable" title="Allow editing the review copy" default="false"/>
+    <f:description>
+      Let reviewers edit a durable copy of the content (each edit is a new version; the original
+      workspace file is never modified).
+    </f:description>
+  </f:entry>
+
+  <f:entry>
+    <f:checkbox field="notify" title="Notify reviewers" default="true"/>
+    <f:description>Show this review in the notification bell.</f:description>
+  </f:entry>
+
+  <f:entry>
+    <f:checkbox field="wait" title="Wait for a decision (blocking)" default="false"/>
+    <f:description>
+      Pause the pipeline until a reviewer approves, rejects or acknowledges (or the SLA elapses). The
+      step then returns a map [id, status, decidedBy, version, content]. Leave off to publish and
+      continue (returns the review id).
+    </f:description>
+  </f:entry>
+
+  <f:entry title="SLA minutes" field="slaMinutes">
+    <f:number default="-1"/>
+    <f:description>
+      Only used when "Wait for a decision" is on. Minutes before a blocking review times out. Leave as
+      -1 to use the global default SLA (Manage Jenkins &#8594; System &#8594; Interactive Input); 0
+      waits indefinitely.
+    </f:description>
+  </f:entry>
+
+  <f:entry title="Submitter filter" field="submitterFilter">
+    <f:textbox/>
+    <f:description>
+      Optional comma-separated list of users or groups allowed to comment/edit/decide. Leave blank for
+      anyone with Build permission on the job.
+    </f:description>
+  </f:entry>
+</j:jelly>

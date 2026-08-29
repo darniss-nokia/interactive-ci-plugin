@@ -1,0 +1,32 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Inner fields for the "Interactive Input notifications" optional job property, revealed when the
+  operator ticks the enable checkbox in Configure. Delivery is not implemented yet; these values are
+  persisted for a future release.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+  <f:entry title="Notify by email" field="email">
+    <f:checkbox/>
+  </f:entry>
+  <f:entry title="Notify Microsoft Teams" field="teams">
+    <f:checkbox/>
+  </f:entry>
+  <f:entry title="Recipients" field="recipients"
+           description="Comma-separated email addresses or channel handles (used when delivery ships).">
+    <f:textbox/>
+  </f:entry>
+  <f:entry title="Webhook credentials ID" field="webhookCredentialsId"
+           description="Optional credentials ID for a Teams/webhook integration (used when delivery ships).">
+    <f:textbox/>
+  </f:entry>
+  <f:description>
+    Delivery (email, Microsoft Teams, webhooks) is not implemented yet — these preferences are saved
+    now for a future release.
+  </f:description>
+</j:jelly>

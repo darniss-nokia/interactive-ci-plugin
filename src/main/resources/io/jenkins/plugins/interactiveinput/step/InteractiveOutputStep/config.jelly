@@ -1,0 +1,47 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Configuration form for the interactiveOutput pipeline step. Its presence lets the Pipeline Snippet
+  Generator ("Generate Pipeline Script") render a form for the step. Fields map to the step's
+  @DataBoundConstructor (reportName) and @DataBoundSetter properties (metrics, notify, chartType).
+  Metrics are a repeatable nested Describable (see Metric/config.jelly).
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+  <f:entry title="Report name" field="reportName">
+    <f:textbox/>
+    <f:description>
+      Name of this report, e.g. "Cost report" or "Carbon footprint". Shown as the section heading on the
+      build's Interactive Output page.
+    </f:description>
+  </f:entry>
+
+  <f:entry title="Metrics">
+    <f:repeatableProperty field="metrics" add="Add metric"/>
+    <f:description>
+      Each metric is a labelled value with an optional unit. Give a metric a stable Key and a numeric
+      value to include it in the per-job trend chart.
+    </f:description>
+  </f:entry>
+
+  <f:entry title="Chart type" field="chartType">
+    <f:select/>
+    <f:description>
+      How this report is visualised on the per-job Interactive Output page. Line/Bar plot the numeric
+      metrics across recent builds; Pie shows the latest build's numeric metrics as slices; Time series
+      plots the latest build's metrics by date when each metric's label is a date (e.g. 2026-07-01),
+      with day/month/year granularity controls.
+    </f:description>
+  </f:entry>
+
+  <f:entry>
+    <f:checkbox field="notify" title="Log a link to the output page"/>
+    <f:description>
+      When set, an anchored link to this build's Interactive Output page is written to the console log.
+    </f:description>
+  </f:entry>
+</j:jelly>

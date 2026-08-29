@@ -1,0 +1,33 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Nested form for a single Metric, rendered repeatably by InteractiveOutputStep/config.jelly. Fields map
+  to Metric's @DataBoundConstructor (label, value) and @DataBoundSetter properties (unit, key).
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+  <f:entry title="Label" field="label">
+    <f:textbox/>
+  </f:entry>
+
+  <f:entry title="Value" field="value">
+    <f:textbox/>
+  </f:entry>
+
+  <f:entry title="Unit" field="unit">
+    <f:textbox/>
+    <f:description>Optional unit shown after the value, e.g. USD, min, kgCO2e.</f:description>
+  </f:entry>
+
+  <f:entry title="Key" field="key">
+    <f:textbox/>
+    <f:description>
+      Optional stable identifier for this metric across builds. Set it (with a numeric value) to plot the
+      metric on the per-job trend chart. Defaults to the label.
+    </f:description>
+  </f:entry>
+</j:jelly>

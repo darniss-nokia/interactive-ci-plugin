@@ -1,0 +1,88 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Per-job Interactive Output page: a theme-aware ECharts line chart of numeric metrics across builds
+  plus the latest build's KPI cards. The chart data is emitted as an escaped JSON data-attribute and
+  rendered by output.js using the global `echarts` provided by the echarts-api adjunct; card/table
+  classes come from the global bell.css, output.css adds page + chart scaffolding.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
+  <l:layout title="Interactive Output - ${it.job.fullDisplayName}">
+    <l:side-panel>
+      <st:include it="${it.job}" page="sidepanel.jelly" optional="true"/>
+    </l:side-panel>
+    <l:main-panel>
+      <st:adjunct includes="io.jenkins.plugins.echarts"/>
+      <st:adjunct includes="io.jenkins.plugins.interactiveinput.output"/>
+      <div class="io-page">
+        <h1>Interactive Output</h1>
+        <p class="io-page-sub">Statistics published across builds of <strong>${it.job.fullDisplayName}</strong>.</p>
+
+        <j:choose>
+          <j:when test="${!it.hasAnyOutput}">
+            <div class="io-empty">No output has been published for this job yet. Call the
+              <code>interactiveOutput</code> step in a build to populate this page.</div>
+          </j:when>
+          <j:otherwise>
+            <div class="io-section">
+              <div class="io-section-head">
+                <h2 class="io-section-title">Charts</h2>
+              </div>
+              <j:choose>
+                <j:when test="${it.hasCharts}">
+                  <div class="io-chart-grid">
+                    <j:forEach var="chart" items="${it.charts}">
+                      <div class="io-chart-block">
+                        <div class="io-chart-block-title">${chart.reportName}</div>
+                        <div class="io-chart"
+                             data-io-model="${chart.json}"
+                             data-root-url="${rootURL}">
+                          <div class="io-chart-canvas" data-io-chart="true"></div>
+                        </div>
+                      </div>
+                    </j:forEach>
+                  </div>
+                  <p class="io-trend-note">Only numeric metrics are plotted. Give a metric a stable
+                    <em>key</em> to keep its series consistent across builds; set <em>chartType</em>
+                    (line / bar / pie / time series) in the step to choose each report's chart. A
+                    <em>time series</em> report plots the latest build's metrics by date (metric labels
+                    must be dates, e.g. 2026-07-01) with Time / Day / Month / Year granularity.</p>
+                </j:when>
+                <j:otherwise>
+                  <div class="io-empty">No numeric metrics to plot yet.</div>
+                </j:otherwise>
+              </j:choose>
+            </div>
+
+            <j:if test="${!empty(it.latestReports)}">
+              <div class="io-section">
+                <div class="io-section-head">
+                  <h2 class="io-section-title">Latest values</h2>
+                  <span class="io-section-time">#${it.latestRun.number}</span>
+                </div>
+                <j:forEach var="rep" items="${it.latestReports}">
+                  <div class="io-report">
+                    <div class="io-report-title">${rep.name}</div>
+                    <div class="io-cards io-cards-lg">
+                      <j:forEach var="m" items="${rep.metrics}">
+                        <div class="io-card">
+                          <div class="io-card-value">${m.value}<j:if test="${!empty(m.unit)}"><span class="io-unit"> ${m.unit}</span></j:if></div>
+                          <div class="io-card-label">${m.label}</div>
+                        </div>
+                      </j:forEach>
+                    </div>
+                  </div>
+                </j:forEach>
+              </div>
+            </j:if>
+          </j:otherwise>
+        </j:choose>
+      </div>
+    </l:main-panel>
+  </l:layout>
+</j:jelly>

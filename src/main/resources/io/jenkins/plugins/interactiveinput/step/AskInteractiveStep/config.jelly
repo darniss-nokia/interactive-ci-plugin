@@ -1,0 +1,63 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Configuration form for the askInteractive pipeline step (B17). Its presence lets the Pipeline
+  Snippet Generator ("Generate Pipeline Script") render a form for the step instead of forcing users
+  to read the plugin page. Fields map to the step's @DataBoundConstructor (prompt) and
+  @DataBoundSetter properties. The reserved "escalation" field is intentionally not shown — it is a
+  not-yet-implemented v0.2 hook (accepted but ignored), so per hosting review B19 we don't expose UI
+  for it.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+  <f:entry title="Prompt" field="prompt">
+    <f:textbox/>
+  </f:entry>
+
+  <f:entry title="Choices">
+    <f:repeatableProperty field="choices" add="Add choice"/>
+  </f:entry>
+
+  <f:entry title="Parameters">
+    <f:repeatableHeteroProperty field="parameters" hasHeader="true" addCaption="Add parameter"/>
+    <f:description>
+      Typed form fields, exactly like the built-in input step's parameters (string, boolean, choice,
+      password, &#8230;). When set, the human fills in these values instead of picking a choice, and
+      the step returns them: a single parameter returns its value; several return a map of name to value.
+    </f:description>
+  </f:entry>
+
+  <f:entry>
+    <f:checkbox field="allowFreeText" title="Allow a free-text answer"/>
+    <f:description>
+      Let the human type a markdown answer in addition to (or instead of) the choices above.
+    </f:description>
+  </f:entry>
+
+  <f:entry title="SLA minutes" field="slaMinutes">
+    <f:number default="-1"/>
+    <f:description>
+      Minutes before the question times out. Leave as -1 to use the global default SLA
+      (Manage Jenkins &#8594; System &#8594; Interactive Input); 0 waits indefinitely.
+    </f:description>
+  </f:entry>
+
+  <f:entry title="Submitter filter" field="submitterFilter">
+    <f:textbox/>
+    <f:description>
+      Optional comma-separated list of users or groups allowed to answer. Leave blank for anyone with
+      Build permission on the job.
+    </f:description>
+  </f:entry>
+
+  <f:entry title="Context (markdown)" field="contextMarkdown">
+    <f:textarea/>
+    <f:description>
+      Optional markdown shown above the choices to give the human context for the decision.
+    </f:description>
+  </f:entry>
+</j:jelly>

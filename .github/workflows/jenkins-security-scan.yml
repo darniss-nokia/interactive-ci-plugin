@@ -1,0 +1,33 @@
+# © 2026 Nokia
+# Licensed under the MIT License
+# SPDX-License-Identifier: MIT
+
+# More information about the Jenkins Security Scan can be found in the developer docs:
+# https://www.jenkins.io/redirect/jenkins-security-scan/
+#
+# This calls the reusable workflow maintained by the Jenkins project. It runs a
+# CodeQL-based scan with the Jenkins-specific query pack (CSRF, XSS, SSRF, path
+# traversal, plaintext secrets, missing permission checks, etc.) and publishes
+# findings to the repository's "Security" tab. It is the same scan the hosting
+# bot runs on the hosting request.
+---
+name: Jenkins Security Scan
+on:
+  push:
+    branches:
+      - "master"
+      - "main"
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  security-events: write
+  contents: read
+  actions: read
+
+jobs:
+  security-scan:
+    uses: jenkins-infra/jenkins-security-scan/.github/workflows/jenkins-security-scan.yaml@v2
+    with:
+      java-cache: 'maven'

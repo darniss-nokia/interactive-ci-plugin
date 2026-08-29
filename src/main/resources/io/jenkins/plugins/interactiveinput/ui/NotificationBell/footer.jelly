@@ -1,0 +1,78 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Injected at the end of <body> on every page where the notification centre is on (bellVisible =
+  feature enabled AND Overall/Read, which implies clientVisible). This renders only the bell mount
+  point: a hidden <div> carrying the server-provided configuration as data-* attributes plus the
+  chosen icon as a hidden <l:icon> template the client clones into the bell button. It lives here (not
+  in header.jelly) because a <div> is not valid inside <head>.
+
+  The vanilla-JS/CSS adjunct itself is contributed earlier, from header.jelly (B21). bell.js discovers
+  this mount on DOMContentLoaded and drives polling, the dropdown and the rich modal. data-job carries
+  the current pipeline (empty on the dashboard) so the client scopes the list: all answerable
+  questions on the dashboard, only this pipeline's inside a job/build.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout">
+  <j:if test="${it.bellVisible}">
+    <div id="interactive-input-bell"
+         data-root-url="${rootURL}"
+         data-job="${it.currentJobFullName}"
+         data-poll-seconds="${it.pollingIntervalSeconds}"
+         data-initial-count="${it.initialCount}"
+         data-rich-modal="${it.richModalEnabled}"
+         data-tab-badge="${it.tabNotificationBadge}"
+         style="display:none">
+      <span class="ii-icon-template" style="display:none"><l:icon src="${it.iconClassName}"/></span>
+    </div>
+  </j:if>
+
+  <!--
+    Run-scoped controllers. summary.jelly only renders on the build's MAIN page, so these live here (on
+    every page via the decorator) instead: the sidebar count badge must stay live on every run sub-page
+    that shows the "Interactive Input" side link (main, console, audit), and the auto-open dialog must
+    fire on the Console Output page — a core view we cannot edit. Both are gated on runContextActive; the
+    auto-open is further scoped to the console page only.
+  -->
+  <j:if test="${it.runContextActive}">
+    <span class="ii-tasklink-controller"
+          style="display:none"
+          data-ii-tasklink="build"
+          data-root-url="${rootURL}"
+          data-job="${it.currentRunJobFullName}"
+          data-build="${it.currentRunBuildNumber}"
+          data-poll-seconds="${it.pollingIntervalSeconds}"
+          data-initial-count="${it.currentRunPendingCount}"/>
+    <j:if test="${it.consolePage}">
+      <span class="ii-autopopup-controller"
+            style="display:none"
+            data-ii-autopopup="build"
+            data-root-url="${rootURL}"
+            data-job="${it.currentRunJobFullName}"
+            data-build="${it.currentRunBuildNumber}"
+            data-rich-modal="${it.richModalEnabled}"
+            data-every="${it.reopenBuildDialogEveryVisit}"/>
+    </j:if>
+  </j:if>
+
+  <!--
+    Run-scoped Interactive VIEW controller. Keeps the "Interactive View" side link's open-review count
+    live on every run sub-page (main, console, audit), mirroring the questions controller above. Gated
+    on runViewContextActive (the build has reviews AND the feature is on); bell.js reads the "view-build"
+    kind, polls /views?job=&build= and counts OPEN reviews. No auto-open dialog for reviews.
+  -->
+  <j:if test="${it.runViewContextActive}">
+    <span class="ii-tasklink-controller"
+          style="display:none"
+          data-ii-tasklink="view-build"
+          data-root-url="${rootURL}"
+          data-job="${it.currentRunJobFullName}"
+          data-build="${it.currentRunBuildNumber}"
+          data-poll-seconds="${it.pollingIntervalSeconds}"
+          data-initial-count="${it.currentRunViewPendingCount}"/>
+  </j:if>
+</j:jelly>

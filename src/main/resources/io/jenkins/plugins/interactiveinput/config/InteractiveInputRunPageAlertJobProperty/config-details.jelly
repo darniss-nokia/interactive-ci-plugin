@@ -1,0 +1,20 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Inner body for the "Interactive Input — alert user on run page" optional job property, shown when the
+  operator ticks the enable checkbox in Configure. The toggle has no further fields; this only explains
+  what enabling it does.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+  <f:description>
+    When enabled, each build's page shows a summary row that stays hidden until this build is waiting
+    for interactive input, then reveals with an "input needed" cue (the same live behaviour as the
+    inline box on the job page). It only affects what the run page displays — it never changes how the
+    build runs.
+  </f:description>
+</j:jelly>

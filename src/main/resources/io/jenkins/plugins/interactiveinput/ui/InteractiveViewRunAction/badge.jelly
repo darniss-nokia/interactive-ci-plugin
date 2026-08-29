@@ -1,0 +1,23 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Build-history badge for a run that still has an OPEN review. Unlike the question badge (which opens a
+  dialog in place), clicking this navigates to the review editor page, as requested ("route it to a new
+  page"). It is therefore a plain link with a small themed dot; the .iv-badge style ships in the
+  globally-loaded bell.css (contributed by the NotificationBell header decorator for Overall/Read
+  viewers), so no heavy editor adjunct is pulled into the build-history list.
+-->
+<j:jelly xmlns:j="jelly:core">
+  <j:if test="${it.waiting}">
+    <a href="${rootURL}/${it.run.url}interactive-view/"
+       class="iv-badge"
+       tooltip="Interactive review open — click to review"
+       data-tooltip-append-to-parent="true"
+       aria-label="Interactive review open — click to review"></a>
+  </j:if>
+</j:jelly>

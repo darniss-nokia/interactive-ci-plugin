@@ -1,0 +1,39 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Native overview card for the experimental run page. Included by core's
+  jenkins/run/OverviewTab/index.jelly (it iterates Run#getRunTabs() and includes each tab's
+  widget.jelly on the "app-build__grid"). This is the experimental-layout counterpart of
+  InteractiveOutputBuildAction/summary.jelly (which is suppressed when the new build page is on), so
+  the KPI cards render as a first-class <l:card> instead of inside core's "Legacy" card.
+
+  `it` here is the InteractiveOutputRunTab. The io-card / io-report / io-summary styles ship in the
+  globally-loaded bell.css (NotificationBell page decorator); the adjunct is re-included idempotently
+  for safety. The full per-report table + trend live on the dedicated interactive-output page.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
+  <st:adjunct includes="io.jenkins.plugins.interactiveinput.bell"/>
+  <l:card title="Interactive Output">
+    <div class="io-summary">
+      <j:forEach var="rep" items="${it.reports}">
+        <div class="io-report">
+          <div class="io-report-title">${rep.name}</div>
+          <div class="io-cards">
+            <j:forEach var="m" items="${rep.metrics}">
+              <div class="io-card">
+                <div class="io-card-value">${m.value}<j:if test="${!empty(m.unit)}"><span class="io-unit"> ${m.unit}</span></j:if></div>
+                <div class="io-card-label">${m.label}</div>
+              </div>
+            </j:forEach>
+          </div>
+        </div>
+      </j:forEach>
+      <a class="io-more" href="${rootURL}/${it.run.url}interactive-output/">View interactive output and trend</a>
+    </div>
+  </l:card>
+</j:jelly>

@@ -1,0 +1,31 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Native "input needed" attention card for the experimental run overview. Included by core's
+  jenkins/run/OverviewTab/index.jelly (Run#getRunTabs() + widget.jelly). This is the experimental
+  counterpart of InteractiveInputRunAction/summary.jelly (suppressed when the new build page is on),
+  so the prompt is a first-class <l:card> instead of a row in core's "Legacy" card.
+
+  The tab is only present when the build is waiting for the current viewer (see the tab's
+  getIconFileName), so this always renders the actionable state. The ii-runbox anchor + data-* wiring
+  matches the classic row; bell.js (already loaded globally, re-included idempotently) opens the shared
+  answer dialog on click and hides it live once answered.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
+  <st:adjunct includes="io.jenkins.plugins.interactiveinput.bell"/>
+  <l:card title="Interactive Input">
+    <a href="${rootURL}/${it.run.url}interactive-input/"
+       class="ii-runbox"
+       data-ii-runbox="build"
+       data-root-url="${rootURL}"
+       data-job="${it.jobFullName}"
+       data-build="${it.buildNumber}"
+       data-poll-seconds="${it.pollingIntervalSeconds}"
+       data-rich-modal="${it.richModalEnabled}">Interactive input needed — click to answer</a>
+  </l:card>
+</j:jelly>

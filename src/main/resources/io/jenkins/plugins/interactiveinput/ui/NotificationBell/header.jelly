@@ -1,0 +1,25 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Contributed into <head> on every page for any Overall/Read viewer (B21). Previously the bell CSS/JS
+  loaded from footer.jelly at the end of <body>; loading the adjunct here in <head> parses it earlier,
+  so styles apply without a flash and the client's delegated click handlers are registered sooner.
+
+  This file only carries the adjunct. The bell mount point (a <div> holding server-provided data-*
+  config + the icon template) stays in footer.jelly because a <div> is not valid inside <head>.
+  bell.js registers its document-level click handlers at eval time and defers mount discovery +
+  polling to DOMContentLoaded, by which point the footer mount has been parsed — so splitting the
+  early-loaded code from the late body mount is correct, not a workaround.
+
+  Gated on clientVisible (Overall/Read) so nothing loads for anonymous users, e.g. the login page.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
+  <j:if test="${it.clientVisible}">
+    <st:adjunct includes="io.jenkins.plugins.interactiveinput.bell"/>
+  </j:if>
+</j:jelly>

@@ -1,0 +1,51 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Native overview card for the experimental run page — the review counterpart of
+  InteractiveOutputRunTab/widget.jelly. Included by core's jenkins/run/OverviewTab/index.jelly (it
+  iterates Run#getRunTabs() and includes each tab's widget.jelly on the "app-build__grid"), so this
+  renders a compact "mini" of the build's interactive-view page as a first-class <l:card>.
+
+  `it` here is the InteractiveViewRunTab. Only present when the viewer has the experimental build page
+  enabled, has a readable review on this build, and the "Interactive View card" Appearance toggle is on
+  (see the tab's getIconFileName), so it always has rows to show. The rows scroll inside
+  .iv-overview-scroll (capped height) while "View all reviews" stays pinned below. Whether a report
+  heading renders is precomputed in Java (OverviewGroup.showHeading) to avoid duplicating a lone file's
+  title; the file name is shown when it differs from the title. The iv-* styles ship in viewer.css
+  (re-included idempotently below). All values are escaped by the default Jelly escaping.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
+  <st:adjunct includes="io.jenkins.plugins.interactiveinput.viewer"/>
+  <l:card title="Interactive View">
+    <div class="iv-overview">
+      <div class="iv-overview-scroll">
+        <j:forEach var="group" items="${it.overviewGroups}">
+          <div class="iv-overview-group">
+            <j:if test="${group.showHeading}">
+              <div class="iv-overview-group-head">${group.reportName}</div>
+            </j:if>
+            <j:forEach var="r" items="${group.reviews}">
+              <div class="iv-overview-row">
+                <div class="iv-overview-main">
+                  <a class="iv-overview-file" href="${rootURL}/${it.run.url}interactive-view/?doc=${r.id}">${r.title}</a>
+                  <j:if test="${r.fileName != r.title}">
+                    <span class="iv-overview-doc">${r.fileName}</span>
+                  </j:if>
+                </div>
+                <span class="iv-status iv-status-${r.status}">${r.status}</span>
+                <j:if test="${r.notify}"><span class="iv-flag iv-flag-notified">Notified</span></j:if>
+                <span class="iv-overview-comments">${r.commentCount} comments</span>
+              </div>
+            </j:forEach>
+          </div>
+        </j:forEach>
+      </div>
+      <a class="iv-more" href="${rootURL}/${it.run.url}interactive-view/">View all reviews</a>
+    </div>
+  </l:card>
+</j:jelly>

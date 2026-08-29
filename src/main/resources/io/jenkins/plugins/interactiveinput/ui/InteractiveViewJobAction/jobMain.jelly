@@ -1,0 +1,31 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Inline contribution on the job/pipeline page (rendered by {WorkflowJob,AbstractProject}/main.jelly,
+  which iterate allActions and include each action's jobMain.jelly).
+
+  Only one piece renders here: an always-present, invisible [data-ii-tasklink="view-job"] controller
+  plus the shared adjunct. bell.js uses it to keep the left-sidebar "Interactive View" link's count
+  LIVE (updating the number and hiding the row at zero) instead of the number going stale until a page
+  reload — mirroring the "Interactive Input" controller. There is no large inline box for reviews (the
+  bell + the sidebar link are the surfaces); the box remains exclusive to questions.
+
+  In the experimental job layout (no #tasks sidebar) the page is still reachable via core's native
+  "more actions" overflow menu, which lists this JobAction (icon + display name). We therefore emit no
+  fallback link here — that only produced a duplicate "Interactive View" entry in the "Legacy" card.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
+  <st:adjunct includes="io.jenkins.plugins.interactiveinput.bell"/>
+  <span class="ii-tasklink-controller"
+        style="display:none"
+        data-ii-tasklink="view-job"
+        data-root-url="${rootURL}"
+        data-job="${it.jobFullName}"
+        data-poll-seconds="${it.pollingIntervalSeconds}"
+        data-initial-count="${it.pendingCount}"/>
+</j:jelly>

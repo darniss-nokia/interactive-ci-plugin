@@ -1,0 +1,93 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Renders under Manage Jenkins -> Appearance -> "Interactive Input" (this config's category is
+  AppearanceCategory). Six independent on/off switches plus the icon chooser. Bound back via the
+  DataBoundSetters on InteractiveInputAppearanceConfig; unchecked boxes reset to false in configure().
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+  <f:section title="Interactive Input">
+
+    <f:entry>
+      <f:checkbox field="notificationCentre"
+                  title="Global notification centre (header bell)"/>
+      <f:description>
+        When on, a bell appears in the header. On the dashboard it lists every question you can
+        answer; inside a pipeline (a job or build page) it shows only that pipeline's questions.
+        Off by default so notifications surface per pipeline and per build instead of at one
+        Jenkins-wide point.
+      </f:description>
+    </f:entry>
+
+    <f:entry>
+      <f:checkbox field="perProjectCentre"
+                  title="Per-project notification centre"/>
+      <f:description>
+        Per-pipeline/per-build surfaces: a sidebar page on each job, an "awaiting input" badge next
+        to the waiting build in the build-history list, and a per-build audit view. On by default.
+      </f:description>
+    </f:entry>
+
+    <f:entry>
+      <f:checkbox field="jobPageBox"
+                  title="Show the inline box on the job page"/>
+      <f:description>
+        The large "Interactive Input" box shown on a pipeline/job page while it has a pending
+        question. Turn this off to keep the badge and sidebar page without the big box. On by
+        default. (Requires the per-project notification centre above.) This box applies to the
+        classic job layout; in the experimental job-page layout it is not shown (Jenkins core has no
+        native job-card slot there), but the pending count still appears via the header bell, the
+        "more actions" menu, and the Interactive Input page.
+      </f:description>
+    </f:entry>
+
+    <f:entry>
+      <f:checkbox field="tabNotificationBadge"
+                  title="Show a pending-count badge in the browser tab"
+                  default="true"/>
+      <f:description>
+        When on (and the header bell above is enabled), the number of questions you can answer is
+        mirrored in the browser tab: a "(N)" prefix on the tab title and a small red dot painted on top
+        of the current favicon. It does not replace the site favicon, so a custom favicon (e.g. one set
+        by the Simple Theme plugin) is preserved. On by default.
+      </f:description>
+    </f:entry>
+
+    <f:entry>
+      <f:checkbox field="viewBuildCard"
+                  title="Show the Interactive View card on the build page"
+                  default="true"/>
+      <f:description>
+        The compact "Interactive View" card on a build's overview (experimental build-page layout) that
+        lists that build's published reviews with their status and comment count. Turn this off to hide
+        the card and its build-page tab; the dedicated Interactive View page, the sidebar link and the
+        build-history badge stay reachable. On by default.
+      </f:description>
+    </f:entry>
+
+    <f:entry>
+      <f:checkbox field="outputBuildCard"
+                  title="Show the Interactive Output card on the build page"
+                  default="true"/>
+      <f:description>
+        The "Interactive Output" card of per-build metrics on a build's page: the native overview card in
+        the experimental layout and the summary row in the classic layout. Turn this off to hide both; the
+        dedicated Interactive Output page stays reachable. On by default.
+      </f:description>
+    </f:entry>
+
+    <f:entry title="Notification icon" field="icon">
+      <f:select/>
+    </f:entry>
+    <f:description>
+      The icon used for interactive-input notifications across the header bell, the build-history
+      badge and the sidebar link.
+    </f:description>
+
+  </f:section>
+</j:jelly>

@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.jenkins-ci.plugins</groupId>
+    <artifactId>plugin</artifactId>
+    <version>6.2211.v27f680c93c53</version>
+    <relativePath />
+  </parent>
+
+  <groupId>io.jenkins.plugins</groupId>
+  <artifactId>interactive-ci</artifactId>
+  <version>${changelist}</version>
+  <packaging>hpi</packaging>
+
+  <name>Interactive CI</name>
+  <description>Interactive human-in-the-loop (HITL) input for Jenkins pipelines: an in-UI notification bell and a rich approval modal for builds that pause for a human decision. Adds an askInteractive pipeline step and a versioned REST API so any external or AI agent can answer approvals programmatically, plus an opt-in bridge that surfaces existing input steps. No AI dependency at runtime.</description>
+  <url>https://github.com/jenkinsci/interactive-input-plugin</url>
+  <inceptionYear>2026</inceptionYear>
+
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:https://github.com/jenkinsci/interactive-input-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/interactive-input-plugin.git</developerConnection>
+    <tag>${scmTag}</tag>
+    <url>https://github.com/jenkinsci/interactive-input-plugin</url>
+  </scm>
+
+  <properties>
+    <changelist>999999-SNAPSHOT</changelist>
+    <!-- Baseline: https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/
+         Bumped to 2.568 for the native Jenkins dialog component, which is core >= 2.560 (review
+         item B8). The live server was upgraded to 2.568.1 (verified 2026-07-21), so target that
+         patch; move to .3 once 2.568.3 ships (2026-09-02). -->
+    <jenkins.baseline>2.568</jenkins.baseline>
+    <jenkins.version>${jenkins.baseline}.1</jenkins.version>
+    <gitHubRepo>jenkinsci/interactive-input-plugin</gitHubRepo>
+
+    <!-- Enforcer bans required for hosting. Verified clean: tests are JUnit 5 only, main code uses
+         StaplerRequest2/StaplerResponse2 (no javax.servlet), and there is no commons-lang 2 usage. -->
+    <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
+    <ban-deprecated-stapler.skip>false</ban-deprecated-stapler.skip>
+    <ban-commons-lang-2.skip>false</ban-commons-lang-2.skip>
+    <banObsoleteDependencyOverrides.skip>false</banObsoleteDependencyOverrides.skip>
+    <!-- No third-party jars are bundled into the HPI (commonmark now comes from the markdown-formatter
+         plugin dependency — see below and review item B12), so keep strict bundling on with no
+         allowlist: the build fails if any non-plugin artifact is ever packed again. -->
+    <hpi.strictBundledArtifacts>true</hpi.strictBundledArtifacts>
+
+    <!-- Formatting is enforced in CI once `mvn spotless:apply` has been run in a Maven
+         environment; keep it disabled until then so CD is not blocked on formatting. -->
+    <spotless.check.skip>true</spotless.check.skip>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.jenkins.tools.bom</groupId>
+        <artifactId>bom-${jenkins.baseline}.x</artifactId>
+        <version>6715.v52b_c00222d1e</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+
+    <!-- JCasC: optional at runtime (air-gapped masters install without it) -->
+    <dependency>
+      <groupId>io.jenkins</groupId>
+      <artifactId>configuration-as-code</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- ECharts for the interactive-output per-job trend chart. Ships its JS/CSS as this API plugin
+         (no bundled jar), version managed by the bom (bom-weekly manages echarts-api
+         6.0.0-1287.vfd24c22a_3d00), so it is not pinned here. -->
+    <dependency>
+      <groupId>io.jenkins.plugins</groupId>
+      <artifactId>echarts-api</artifactId>
+    </dependency>
+
+    <!-- Ionicons "symbols" for the notification icon (bell/badge/sidebar). Theme-aware and the
+         standard icon set across the Jenkins plugin ecosystem; version managed by the BOM. -->
+    <dependency>
+      <groupId>io.jenkins.plugins</groupId>
+      <artifactId>ionicons-api</artifactId>
+    </dependency>
+
+    <!-- Safe markdown rendering (context + free-text preview). The markdown-formatter plugin ships
+         commonmark, so we depend on the plugin rather than packing the commonmark jar into our own HPI
+         (review item B12). MarkdownRenderer still drives commonmark's API directly (escapeHtml +
+         sanitizeUrls) to keep our hardened, escape-by-default output — the plugin only provides the
+         library on the classpath. Not managed by the bom, so the version is pinned; its requiredCore
+         (2.528.3) is well below our 2.568 baseline. -->
+    <dependency>
+      <groupId>io.jenkins.plugins</groupId>
+      <artifactId>markdown-formatter</artifactId>
+      <version>346.v3c6828ddd39e</version>
+    </dependency>
+
+    <!-- Syntax highlighting for the interactive-view review page (any language shown as escaped,
+         highlighted SOURCE — never executed). Prism ships its JS/CSS as this API plugin, so we depend
+         on the plugin rather than bundling prismjs (review item B12 / packaging convention). Version is
+         managed by the bom (bom-weekly manages prism-api 1.30.0-741.v034eb_0b_0a_a_fa_), so it is not
+         pinned here. -->
+    <dependency>
+      <groupId>io.jenkins.plugins</groupId>
+      <artifactId>prism-api</artifactId>
+    </dependency>
+
+    <!-- Modal dialog surface + input bridge target. Version managed by the bom chain
+         (bom-2.568.x); the 2.568 baseline also provides core's native dialog component (B8). -->
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>pipeline-input-step</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>script-security</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>structs</artifactId>
+    </dependency>
+    <!-- FlowNode + PauseAction for the anchored console link / "Paused" flow-graph marker (§console audit). -->
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-durable-task-step</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-job</artifactId>
+    </dependency>
+    <!-- Pipeline / workflow (versions managed by BOM unless noted) -->
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-step-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-support</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.jenkins.configuration-as-code</groupId>
+      <artifactId>test-harness</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-basic-steps</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- ===== test scope ===== -->
+    <!-- CPS engine: only needed to author pipeline scripts in tests (CpsFlowDefinition). The plugin's
+         runtime code is execution-engine agnostic (workflow-step-api only), so this is NOT a runtime
+         dependency — keeping it test-scoped avoids forcing a workflow-cps floor on installs. -->
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-cps</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <!-- The org.jenkins-ci.plugins:plugin parent POM is hosted at repo.jenkins-ci.org, NOT
+       Maven Central, so these must be declared here to bootstrap resolution of the parent
+       POM (and Maven plugins) on a clean CI with no custom settings.xml — e.g. the CodeQL
+       autobuild in the Jenkins Security Scan. This matches the standard Jenkins plugin
+       archetype; a repo the parent "provides" cannot be used to download the parent itself. -->
+  <repositories>
+    <repository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
+</project>

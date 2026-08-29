@@ -1,0 +1,176 @@
+/**
+ * © 2026 Nokia
+ * Licensed under the MIT License
+ * SPDX-License-Identifier: MIT
+*/
+
+/*
+ * interactive-input — Interactive Output pages (per-build details + per-job trend).
+ *
+ * Only page scaffolding + the chart container live here; the KPI card / table classes are shared with
+ * the build main-page summary and ship in the globally-loaded bell.css. All colours use Jenkins theme
+ * variables so light and dark themes both render natively.
+ */
+.io-page {
+  max-width: 1100px;
+}
+
+.io-page-sub {
+  color: var(--text-color-secondary, #8a8a8a);
+  margin: 4px 0 20px;
+}
+
+.io-section {
+  margin: 0 0 28px;
+}
+
+.io-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--panel-border-color, rgba(128, 128, 128, 0.2));
+  padding-bottom: 6px;
+}
+
+.io-section-title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.io-section-time {
+  color: var(--text-color-secondary, #8a8a8a);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.io-empty {
+  padding: 16px;
+  border: 1px dashed var(--input-border, rgba(128, 128, 128, 0.35));
+  border-radius: 8px;
+  color: var(--text-color-secondary, #8a8a8a);
+  background: var(--panel-header-bg-color, rgba(128, 128, 128, 0.04));
+}
+
+.io-chart {
+  width: 100%;
+}
+
+.io-chart-canvas {
+  width: 100%;
+  height: 380px;
+}
+
+/* Time-series granularity toolbar (Time / Day / Month / Year), inserted above the chart canvas. */
+.io-gran {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 0 0 8px;
+}
+
+.io-gran-label {
+  color: var(--text-color-secondary, #8a8a8a);
+  font-size: 12px;
+  margin-right: 2px;
+}
+
+.io-gran-btn {
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.35));
+  background: var(--panel-header-bg-color, rgba(128, 128, 128, 0.04));
+  color: var(--text-color, #2b2b2b);
+  border-radius: 999px;
+  padding: 2px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.io-gran-btn:hover {
+  background: var(--item-background--hover, rgba(128, 128, 128, 0.12));
+}
+
+.io-gran-btn.active {
+  background: var(--accent-color, #4a90d9);
+  border-color: var(--accent-color, #4a90d9);
+  color: var(--text-color--on-accent, #fff);
+}
+
+/* Per-report charts: one block per report, responsive two-up on wide viewports. */
+.io-chart-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 900px) {
+  .io-chart-grid:not(.io-chart-grid-single) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.io-chart-block {
+  border: 1px solid var(--panel-border-color, rgba(128, 128, 128, 0.2));
+  border-radius: 10px;
+  padding: 12px 12px 4px;
+  background: var(--panel-header-bg-color, rgba(128, 128, 128, 0.03));
+}
+
+.io-chart-block-title {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.io-trend-note {
+  margin-top: 8px;
+  color: var(--text-color-secondary, #8a8a8a);
+  font-size: 12px;
+}
+
+/* Client-side table filter + sort (build page). */
+.io-table-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 8px;
+  flex-wrap: wrap;
+}
+
+.io-filter-search {
+  max-width: 280px;
+}
+
+.io-table-hint {
+  color: var(--text-color-secondary, #8a8a8a);
+  font-size: 12px;
+}
+
+/* "Group by date" granularity control, shown only when the table has an all-dates column. */
+.io-gran-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-color-secondary, #8a8a8a);
+  font-size: 12px;
+}
+
+.io-gran-select-input {
+  font-size: 12px;
+}
+
+.io-table .io-th-sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.io-table .io-th-sortable[aria-sort="ascending"]::after {
+  content: " \25B2";
+  font-size: 10px;
+}
+
+.io-table .io-th-sortable[aria-sort="descending"]::after {
+  content: " \25BC";
+  font-size: 10px;
+}

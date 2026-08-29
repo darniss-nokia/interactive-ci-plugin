@@ -1,0 +1,49 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Build main-page summary contribution for interactiveOutput. Included by BOTH run layouts inside a
+  <table> (  the classic Run/index.jelly summaries table and the experimental OverviewTab "Legacy" card),
+  so everything here is emitted as ONE table row (<tr>) to stay valid markup in both.
+
+  Under the experimental build page this row is suppressed (it.classicSummaryVisible is false): the same
+  KPI card is rendered natively on the run overview by InteractiveOutputRunTab/widget.jelly instead, so
+  nothing of ours lands in core's "Legacy" card. The classic layout still shows this row.
+
+  Like InteractiveInputRunAction/summary.jelly, this adds NO adjunct of its own (a <script>/<link> is not
+  valid mid-table). The KPI card + report styles it uses ship in the globally-loaded bell.css (the
+  NotificationBell page decorator loads that adjunct in <head> for every Overall/Read viewer). The
+  full per-report table and the per-job trend live on the dedicated pages (index.jelly / job trend),
+  which load the output.css + echarts adjuncts properly.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout">
+  <j:if test="${it.classicSummaryVisible}">
+    <tr class="app-summary io-summary-row">
+      <td>
+        <l:icon src="${it.iconClassName}"/>
+      </td>
+      <td>
+        <div class="io-summary">
+          <j:forEach var="rep" items="${it.reports}">
+            <div class="io-report">
+              <div class="io-report-title">${rep.name}</div>
+              <div class="io-cards">
+                <j:forEach var="m" items="${rep.metrics}">
+                  <div class="io-card">
+                    <div class="io-card-value">${m.value}<j:if test="${!empty(m.unit)}"><span class="io-unit"> ${m.unit}</span></j:if></div>
+                    <div class="io-card-label">${m.label}</div>
+                  </div>
+                </j:forEach>
+              </div>
+            </div>
+          </j:forEach>
+          <a class="io-more" href="${rootURL}/${it.run.url}interactive-output/">View interactive output and trend</a>
+        </div>
+      </td>
+    </tr>
+  </j:if>
+</j:jelly>

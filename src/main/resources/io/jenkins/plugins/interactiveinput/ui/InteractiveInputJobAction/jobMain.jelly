@@ -1,0 +1,66 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Inline box on the job/pipeline page (rendered by {WorkflowJob,AbstractProject}/main.jelly, which
+  iterate allActions and include each action's jobMain.jelly).
+
+  Two pieces render here whenever the per-project centre is on (i.e. whenever this action exists):
+    1. An always-present, invisible [data-ii-tasklink] controller + the shared adjunct. bell.js uses
+       it to keep the left-sidebar "Interactive Input (N)" link's count LIVE (updating the number and
+       hiding the row at zero) instead of the number going stale until a page reload.
+    2. The large inline box — shown only when this job has pending questions AND the operator left the
+       box enabled (Appearance -> Interactive Input). Its title/icon pulse slowly (red) to draw the eye.
+  Both mount the shared JS widget, which polls the scoped REST endpoint and opens the shared modal.
+
+  Under the experimental job page the inline box is suppressed (it.jobBoxVisibleClassic is false) so
+  nothing of ours renders inside core's "Legacy" card; the action stays reachable via the native "more
+  actions" overflow menu, the global bell, and the dedicated interactive-input/ page. The invisible
+  live-count controller below still renders in both layouts (it draws nothing). Core has no
+  plugin-usable native job-card API in this baseline (WidgetFactory is @Restricted(NoExternalUse)).
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
+  <st:adjunct includes="io.jenkins.plugins.interactiveinput.bell"/>
+  <span class="ii-tasklink-controller"
+        style="display:none"
+        data-ii-tasklink="job"
+        data-root-url="${rootURL}"
+        data-job="${it.jobFullName}"
+        data-poll-seconds="${it.pollingIntervalSeconds}"
+        data-initial-count="${it.pendingCount}"/>
+
+  <j:if test="${it.jobBoxVisibleClassic}">
+    <!-- The inline box is core's design-library card (<l:card>, since 2.479.1; verified present on the
+         2.568 baseline). The configured notification icon is supplied via the documented `controls`
+         fragment; bell.css then pulls it to the LEFT of a bold title and pulses the header slowly in red
+         (reproducing the old inline-box header). The card content is the shared JS widget mount, which
+         polls the scoped REST endpoint and renders the pending questions (with live SLA countdowns);
+         the list is height-capped so it scrolls past ~3 rows instead of growing unbounded.
+
+         The card is ALWAYS rendered (not gated on pendingCount) but starts hidden via jenkins-hidden
+         when nothing is pending, so bell.js can reveal it on the very next poll when a question appears
+         — instead of the box only showing after a full page reload (matching the always-present sidebar
+         tasklink controller above). bell.js (mountJobWidget) toggles the wrapper's visibility as the
+         scoped count changes. -->
+    <j:set var="iiCardControls">
+      <l:icon src="${it.iconClassName}"/>
+    </j:set>
+    <j:set var="iiCardHidden" value="${it.pendingCount > 0 ? '' : 'jenkins-hidden'}"/>
+    <div class="ii-jobcard ${iiCardHidden}">
+      <l:card title="Interactive Input" controls="${iiCardControls}">
+        <div class="interactive-input-widget"
+             data-ii-widget="job"
+             data-root-url="${rootURL}"
+             data-job="${it.jobFullName}"
+             data-scope="job"
+             data-poll-seconds="${it.pollingIntervalSeconds}"
+             data-rich-modal="${it.richModalEnabled}"
+             data-initial-count="${it.pendingCount}"/>
+      </l:card>
+    </div>
+  </j:if>
+</j:jelly>

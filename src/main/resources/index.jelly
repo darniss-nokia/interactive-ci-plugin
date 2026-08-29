@@ -1,0 +1,36 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<div>
+  <p>
+    Brings a notification bell and friendly pop-ups into the Jenkins UI, so a pipeline can pause
+    and ask a real person for input, get a generated file reviewed, or show off its numbers &#8212;
+    instead of leaving it all buried in the console log.
+  </p>
+  <ul>
+    <li>
+      <b>Ask a question</b> &#8212; the <code>askInteractive</code> step pauses a pipeline and asks
+      someone to pick an option (or type an answer), right from the bell.
+    </li>
+    <li>
+      <b>Review a file</b> &#8212; the <code>interactiveView</code> step publishes a generated file
+      (a report, a plan, a diff, ...) for line-by-line comments and an approve / request changes /
+      reject decision &#8212; like reviewing a document on Confluence.
+    </li>
+    <li>
+      <b>Show the numbers</b> &#8212; the <code>interactiveOutput</code> step turns per-build stats
+      (cost, carbon footprint, resource usage, ...) into KPI cards, a table, and trend charts on
+      the build and job pages.
+    </li>
+  </ul>
+  <p>
+    Answers can also come in automatically over a built-in web API, so a bot, script, or AI tool
+    can respond on a person's behalf. Already using the built-in <code>input</code> step? An
+    optional bridge can show those in the same bell too, with no changes to your existing
+    pipelines.
+  </p>
+</div>

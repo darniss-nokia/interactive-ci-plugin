@@ -1,0 +1,138 @@
+// examples/markdown-showcase/Jenkinsfile
+//
+// Self-contained demo of the interactive-ci Markdown rendering, exercising the constructs that the
+// Interactive View viewer (and the askInteractive modal context panel) render — with emphasis on the
+// GitHub-Flavored Markdown extensions this plugin enables: TABLES, STRIKETHROUGH and AUTOLINKS.
+//
+// How to run:
+//   1. Create a Pipeline job and paste this file in (or commit it as a Jenkinsfile and point the job at it).
+//   2. Run it. It needs an agent with a workspace ("agent any") because interactiveView snapshots a file
+//      from the build's workspace.
+//   3. Open the build's "Interactive View" sidebar link (or the notification bell) to see the rendered
+//      Markdown. Stages 2 and 3 BLOCK on a human decision by design (a review gate / an approval).
+//
+// The full "every construct" reference lives next to this file in markdown-showcase.md; point
+// `interactiveView(file: ...)` at it after an SCM checkout if you want the exhaustive version.
+
+pipeline {
+    agent any
+    options {
+        timestamps()
+    }
+    stages {
+
+        stage('Write showcase markdown') {
+            steps {
+                // A dollar-slashy string ($/ ... /$) so backslashes, pipes and backticks are all literal.
+                writeFile file: 'markdown-showcase.md', text: $/# Markdown rendering demo
+
+## 1. Emphasis
+**bold**, _italic_, ***bold italic***, ~~strikethrough~~ and `inline code`.
+
+## 2. Table with column alignment (:-- left, :-: center, --: right)
+| Left        | Center | Right |
+|:------------|:------:|------:|
+| a           | b      | 1     |
+| longer cell | mid    | 1000  |
+| x           | y      | 42    |
+
+## 3. Table with inline formatting inside cells
+| Feature       | Example                          | Status              |
+|---------------|----------------------------------|---------------------|
+| bold + code   | **`retryCount`** must be `>= 0`  | ~~deprecated~~ **active** |
+| link in cell  | see [the docs](https://www.jenkins.io/) | OK           |
+| escaped pipe  | `a \| b` renders literally       | OK                  |
+
+## 4. Lists
+- unordered
+  - nested
+    - deeper
+1. ordered
+2. second
+   1. sub-item
+
+## 5. Blockquote
+> A quote with **bold** and `code`.
+> > A nested quote.
+
+## 6. Autolinks
+Bare URL: https://plugins.jenkins.io/interactive-ci/ and e-mail dev@example.com
+
+## 7. Fenced code block (shown as escaped source)
+```java
+public String render(String md) {
+    return RENDERER.render(PARSER.parse(md));
+}
+```
+
+## 8. Inline HTML is escaped, never executed
+<script>alert('xss')</script> and an entity: &copy; 2026, 5 &lt; 10.
+/$
+                echo 'Wrote markdown-showcase.md'
+            }
+        }
+
+        stage('Publish as an informational viewer (non-blocking)') {
+            steps {
+                script {
+                    // mode:'info' is a read-only, still-commentable viewer with no approve/reject buttons.
+                    def id = interactiveView(
+                        file: 'markdown-showcase.md',
+                        reportName: 'Markdown showcase',
+                        title: 'Markdown rendering showcase (info)',
+                        mode: 'info',
+                        notify: true,
+                        commentable: true,
+                        editable: true
+                    )
+                    echo "Published informational review: ${id}"
+                }
+            }
+        }
+
+        stage('Blocking review gate (waits for a human decision)') {
+            steps {
+                script {
+                    // wait:true pauses the pipeline until a reviewer approves / rejects / requests changes.
+                    def r = interactiveView(
+                        file: 'markdown-showcase.md',
+                        reportName: 'Markdown showcase',
+                        title: 'Markdown rendering showcase (review + wait)',
+                        mode: 'review',
+                        wait: true,
+                        slaMinutes: 60,
+                        commentable: true,
+                        editable: true
+                    )
+                    echo "Decision: ${r.status} by ${r.decidedBy}"
+                    if (r.status == 'CHANGES_REQUESTED') {
+                        // On "Request changes" the reviewer's inline comments come back for a regenerate loop.
+                        r.comments.each { c -> echo "line ${c.line}: ${c.body}" }
+                    }
+                }
+            }
+        }
+
+        stage('askInteractive with a table in the modal context') {
+            steps {
+                script {
+                    // The modal's context panel renders the same Markdown pipeline, so tables/strikethrough/
+                    // autolinks now render there too.
+                    def ans = askInteractive(
+                        prompt: 'Approve the configuration matrix below?',
+                        contextMarkdown: $/| Setting     | Value        |
+|-------------|--------------|
+| replicas    | **3**        |
+| ~~debug~~   | disabled     |
+
+See https://www.jenkins.io/ for details./$,
+                        choices: [[id: 'approve', label: 'Approve'], [id: 'reject', label: 'Reject']],
+                        allowFreeText: true,
+                        slaMinutes: 60
+                    )
+                    echo "askInteractive answer: ${ans}"
+                }
+            }
+        }
+    }
+}

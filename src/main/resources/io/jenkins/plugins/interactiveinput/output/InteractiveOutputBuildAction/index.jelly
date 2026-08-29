@@ -1,0 +1,80 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Dedicated per-build Interactive Output page (reached from the run's left-sidebar link). Renders every
+  report published by this build as KPI cards + a full table. Card/table classes come from the global
+  bell.css; output.css adds the page scaffolding. Links out to the per-job trend chart.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:i="jelly:fmt">
+  <l:layout title="Interactive Output - ${it.run.fullDisplayName}">
+    <l:side-panel>
+      <st:include it="${it.run}" page="sidepanel.jelly" optional="true"/>
+    </l:side-panel>
+    <l:main-panel>
+      <st:adjunct includes="io.jenkins.plugins.interactiveinput.output"/>
+      <div class="io-page">
+        <h1>Interactive Output</h1>
+        <p class="io-page-sub">
+          Statistics published by <strong>${it.run.fullDisplayName}</strong>.
+          <a class="io-more" href="${rootURL}/${it.run.parent.url}interactive-output/">View the per-job trend</a>
+        </p>
+
+        <j:choose>
+          <j:when test="${empty(it.reports)}">
+            <div class="io-empty">This build published no output.</div>
+          </j:when>
+          <j:otherwise>
+            <j:forEach var="rep" items="${it.reports}" varStatus="loop">
+              <div class="io-section">
+                <div class="io-section-head">
+                  <h2 class="io-section-title">${rep.name}</h2>
+                  <span class="io-section-time">
+                    <i:formatDate value="${rep.createdDate}" type="both" dateStyle="medium" timeStyle="short"/>
+                  </span>
+                </div>
+
+                <div class="io-cards io-cards-lg">
+                  <j:forEach var="m" items="${rep.metrics}">
+                    <div class="io-card">
+                      <div class="io-card-value">${m.value}<j:if test="${!empty(m.unit)}"><span class="io-unit"> ${m.unit}</span></j:if></div>
+                      <div class="io-card-label">${m.label}</div>
+                    </div>
+                  </j:forEach>
+                </div>
+
+                <div class="io-table-tools" data-io-table-filter="io-table-${loop.index}">
+                  <input type="search" class="io-filter-search jenkins-input"
+                         placeholder="Filter ${rep.name} metrics…"/>
+                  <span class="io-table-hint">Click a column header to sort.</span>
+                </div>
+                <table id="io-table-${loop.index}" class="jenkins-table io-table">
+                  <thead>
+                    <tr>
+                      <th>Metric</th>
+                      <th>Value</th>
+                      <th>Unit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <j:forEach var="m" items="${rep.metrics}">
+                      <tr>
+                        <td>${m.label}</td>
+                        <td>${m.value}</td>
+                        <td>${m.unit}</td>
+                      </tr>
+                    </j:forEach>
+                  </tbody>
+                </table>
+              </div>
+            </j:forEach>
+          </j:otherwise>
+        </j:choose>
+      </div>
+    </l:main-panel>
+  </l:layout>
+</j:jelly>

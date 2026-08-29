@@ -1,0 +1,21 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Bell polling cadence, rendered under Manage Jenkins -> System -> "Interactive Input" via
+  <f:property field="polling"/> (B20: previously configurable only via JCasC/Script Console). The
+  setter clamps to Polling.MIN_INTERVAL_SECONDS (5s) to protect the controller from aggressive polls.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+  <f:entry title="Bell poll interval (seconds)" field="intervalSeconds">
+    <f:number default="15" min="5" step="1"/>
+    <f:description>
+      How often the notification bell and per-project widgets poll for pending questions. Minimum 5
+      seconds. There is deliberately no push/WebSocket in v0.1 so the plugin works through every proxy.
+    </f:description>
+  </f:entry>
+</j:jelly>

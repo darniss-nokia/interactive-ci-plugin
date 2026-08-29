@@ -1,0 +1,33 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Rendered by the build-history widget for each BuildBadgeAction on a run, while the build has a
+  WAITING question. It is an empty red dot that pulses slowly (see .ii-badge in bell.css) to catch the
+  eye without competing with core's own badges.
+
+  Clicking it opens the interactive-input answer modal in place (bell.js intercepts clicks on
+  [data-ii-badge] via event delegation, so it also works for build rows injected by the async
+  build-history widget) — the same modal the header bell uses — instead of navigating away. The href
+  is a no-JS fallback to the per-build audit page. The badge pulls in the shared adjunct itself so the
+  styling and the click handler are present wherever the build-history list is shown, even when the
+  header bell and the job-page box are both off. Adjunct includes are idempotent.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
+  <j:if test="${it.waiting}">
+    <st:adjunct includes="io.jenkins.plugins.interactiveinput.bell"/>
+    <a href="${rootURL}/${it.run.url}interactive-input/"
+       class="ii-badge"
+       tooltip="Awaiting interactive input — click to answer"
+       data-tooltip-append-to-parent="true"
+       aria-label="Awaiting interactive input — click to answer"
+       data-ii-badge="true"
+       data-root-url="${rootURL}"
+       data-job="${it.jobFullName}"
+       data-build="${it.buildNumber}"></a>
+  </j:if>
+</j:jelly>

@@ -1,0 +1,29 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  One repeatable choice row inside the askInteractive step form (B17). Rendered by the step's
+  config.jelly via <f:repeatableProperty field="choices"/>, so the Pipeline Snippet Generator can
+  build the choices list without hand-writing Groovy. Fields bind directly to Choice's
+  @DataBoundConstructor (id, label) and @DataBoundSetter (why).
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+  <f:entry title="Id" field="id">
+    <f:textbox/>
+  </f:entry>
+  <f:entry title="Label" field="label">
+    <f:textbox/>
+  </f:entry>
+  <f:entry title="Why (optional)" field="why">
+    <f:textbox/>
+  </f:entry>
+  <f:entry>
+    <div align="right">
+      <f:repeatableDeleteButton/>
+    </div>
+  </f:entry>
+</j:jelly>

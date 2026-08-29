@@ -1,0 +1,36 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  The interactive-view review editor page (reached from the run's left-sidebar "Interactive View" link,
+  the anchored console link, and the notification bell). viewer.js reads the ?doc=<id> query parameter
+  and fetches the review over the permission-checked REST API, then renders a Confluence-style two-pane
+  editor: rendered markdown / escaped highlighted source on the left, comment threads on the right, with
+  edit-copy history and approve/reject/acknowledge. With no ?doc param it lists this build's reviews.
+
+  prism-api is loaded for syntax highlighting; file content is always inserted ESCAPED (via textContent)
+  and only server-sanitised HTML (rendered markdown, rendered comment bodies) is ever inserted as HTML.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
+  <l:layout title="Interactive View - ${it.run.fullDisplayName}">
+    <l:side-panel>
+      <st:include it="${it.run}" page="sidepanel.jelly" optional="true"/>
+    </l:side-panel>
+    <l:main-panel>
+      <st:adjunct includes="io.jenkins.plugins.prism"/>
+      <st:adjunct includes="io.jenkins.plugins.interactiveinput.viewer"/>
+      <div class="iv-app"
+           data-iv-root="true"
+           data-root-url="${rootURL}"
+           data-job="${it.jobFullName}"
+           data-build="${it.buildNumber}"
+           data-poll-seconds="${it.pollingIntervalSeconds}">
+        <div class="iv-loading">Loading review&#8230;</div>
+      </div>
+    </l:main-panel>
+  </l:layout>
+</j:jelly>

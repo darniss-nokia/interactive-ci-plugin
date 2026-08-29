@@ -1,0 +1,1114 @@
+/**
+ * © 2026 Nokia
+ * Licensed under the MIT License
+ * SPDX-License-Identifier: MIT
+*/
+
+/*
+ * interactive-input — review editor ("Interactive View") styles.
+ * Theme-aware: every colour is a Jenkins CSS custom property with a safe fallback, so the editor
+ * matches both the light and dark themes. Loaded only on the review editor page (paired with viewer.js).
+ */
+
+.iv-app {
+  max-width: 1200px;
+}
+
+.iv-loading,
+.iv-empty,
+.iv-note,
+.iv-hint {
+  color: var(--text-color-secondary, #6a6a6a);
+  padding: 8px 0;
+}
+
+.iv-error {
+  color: var(--error-color, #d54c53);
+  padding: 12px;
+  border: 1px solid var(--error-color, #d54c53);
+  border-radius: 8px;
+}
+
+.iv-page-sub {
+  color: var(--text-color-secondary, #6a6a6a);
+  margin-top: -6px;
+}
+
+/* ---- header ---- */
+.iv-header {
+  margin-bottom: 12px;
+}
+
+.iv-back {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+
+.iv-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.iv-title {
+  margin: 0;
+}
+
+.iv-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 6px;
+  color: var(--text-color-secondary, #6a6a6a);
+  font-size: 0.85rem;
+}
+
+/* ---- status pills / chips ---- */
+.iv-status {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #fff;
+  background: var(--text-color-secondary, #6a6a6a);
+}
+
+.iv-status-OPEN {
+  background: var(--accent-color, #4a90d9);
+}
+
+.iv-status-APPROVED {
+  background: var(--success-color, #3a9d5d);
+}
+
+.iv-status-REJECTED {
+  background: var(--error-color, #d54c53);
+}
+
+.iv-status-ACKNOWLEDGED {
+  background: var(--text-color-secondary, #6a6a6a);
+}
+
+.iv-status-CHANGES_REQUESTED {
+  background: var(--warning-color, #c1873b);
+}
+
+.iv-status-EXPIRED,
+.iv-status-ABORTED {
+  background: var(--warning-color, #c1873b);
+}
+
+.iv-chip {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: var(--item-background--hover, rgba(128, 128, 128, 0.12));
+  color: var(--text-color, #2b2b2b);
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.3));
+}
+
+.iv-chip-blocking {
+  color: var(--warning-color, #c1873b);
+  border-color: var(--warning-color, #c1873b);
+  background: transparent;
+}
+
+.iv-chip-line {
+  cursor: pointer;
+}
+
+/* Marks a comment posted by an automation (e.g. the regenerate agent). The label itself is display-only;
+   the real Jenkins author is preserved server-side and shown via the author span's title. */
+.iv-chip-auto {
+  color: var(--accent-color, #4a90d9);
+  border-color: var(--accent-color, #4a90d9);
+  background: transparent;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* ---- toolbar ---- */
+.iv-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--input-border, rgba(128, 128, 128, 0.2));
+  border-bottom: 1px solid var(--input-border, rgba(128, 128, 128, 0.2));
+  margin-bottom: 14px;
+}
+
+.iv-toolbar-grp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.iv-toolbar-note {
+  flex-basis: 100%;
+  color: var(--warning-color, #c1873b);
+  font-size: 0.82rem;
+}
+
+.iv-seg {
+  display: inline-flex;
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.35));
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.iv-seg-btn {
+  border: 0;
+  background: var(--background, #fff);
+  color: var(--text-color, #2b2b2b);
+  padding: 4px 12px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.iv-seg-btn.active {
+  background: var(--accent-color, #4a90d9);
+  color: #fff;
+}
+
+.iv-version {
+  max-width: 260px;
+}
+
+/* ---- two-pane body ---- */
+.iv-body {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.iv-pane-content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.iv-pane-comments {
+  flex: 0 0 360px;
+  max-width: 360px;
+  position: sticky;
+  top: 12px;
+}
+
+@media (max-width: 980px) {
+  .iv-body {
+    flex-direction: column;
+  }
+  .iv-pane-comments {
+    flex-basis: auto;
+    max-width: none;
+    width: 100%;
+    position: static;
+  }
+}
+
+/* ---- rendered markdown ---- */
+.iv-rendered {
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.25));
+  border-radius: 10px;
+  padding: 18px 22px 18px 30px; /* extra left padding reserves the inline-comment "+" gutter */
+  background: var(--card-background, var(--background, #fff));
+  overflow-x: auto;
+}
+
+.iv-rendered img {
+  max-width: 100%;
+}
+
+/* ---- rendered HTML snapshot (sandboxed frame) ----
+   An HTML document is shown in an isolated <iframe> rather than inserted into this page (see
+   renderHtmlFrame in viewer.js). A generated report brings its own CSS and expects a tall viewport, so
+   give the frame a generous fixed height with its own scrolling; the border matches .iv-rendered so the
+   two "Rendered" views look alike.
+
+   The literal #fff here is deliberate, not a missed theme variable: this box is a viewport onto a FOREIGN
+   document that ships its own (almost always light) stylesheet, and a browser's default canvas for a
+   document with no background is white. A theme-aware value would put a dark backdrop behind a light
+   report while it loads, or around one that sets no background of its own. Every other surface in this
+   file uses theme variables. */
+.iv-htmlframe-wrap {
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.25));
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.iv-htmlframe {
+  display: block;
+  width: 100%;
+  height: min(78vh, 900px);
+  border: 0;
+}
+
+.iv-rendered pre {
+  overflow-x: auto;
+}
+
+/* ---- GFM tables (commonmark TablesExtension) in the rendered document and in comment bodies.
+   The renderer emits a bare <table> with per-column align attributes; core/browser defaults leave it
+   borderless, so style it here (theme-aware). .iv-rendered already scrolls (overflow-x:auto) for wide
+   tables; keep the table a real table so border-collapse and column alignment work. ---- */
+.iv-rendered table,
+.iv-comment-body table {
+  border-collapse: collapse;
+  margin: 12px 0;
+  max-width: 100%;
+  font-size: 0.92em;
+}
+
+.iv-rendered th,
+.iv-rendered td,
+.iv-comment-body th,
+.iv-comment-body td {
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.4));
+  padding: 6px 10px;
+  text-align: left; /* GFM default; a per-column :---: alignment is honoured by the overrides below */
+  vertical-align: top;
+}
+
+.iv-rendered th[align="center"],
+.iv-rendered td[align="center"],
+.iv-comment-body th[align="center"],
+.iv-comment-body td[align="center"] {
+  text-align: center;
+}
+
+.iv-rendered th[align="right"],
+.iv-rendered td[align="right"],
+.iv-comment-body th[align="right"],
+.iv-comment-body td[align="right"] {
+  text-align: right;
+}
+
+.iv-rendered thead th,
+.iv-comment-body thead th {
+  background: var(--item-background--hover, rgba(128, 128, 128, 0.1));
+  font-weight: 600;
+}
+
+.iv-rendered tbody tr:nth-child(even),
+.iv-comment-body tbody tr:nth-child(even) {
+  background: var(--item-background--hover, rgba(128, 128, 128, 0.045));
+}
+
+/* ---- rendered-view inline comment anchors (per element: heading, paragraph, list item, table row) ----
+   MarkdownRenderer stamps every commentable element with data-source-line; the client marks the innermost
+   one .iv-anchor and hosts a left-gutter "+" / count marker on it (or, for a table row, on its first cell,
+   because a control cannot be a direct child of <tr>). The controls sit in the reserved left padding of
+   .iv-rendered, so no content shifts, and clicking anchors a comment to that exact source line. */
+.iv-anchor {
+  position: relative;
+  border-radius: 6px;
+}
+
+.iv-anchor:hover {
+  background: var(--item-background--hover, rgba(128, 128, 128, 0.06));
+}
+
+.iv-anchor.selected {
+  background: var(--item-background--active, rgba(74, 144, 217, 0.16));
+}
+
+.iv-anchor.has-comments {
+  box-shadow: inset 3px 0 0 0 var(--accent-color, #4a90d9);
+}
+
+.iv-anchor-host {
+  position: relative;
+}
+
+.iv-rblock-add,
+.iv-rblock-marker {
+  position: absolute;
+  left: -24px;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  line-height: 20px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.iv-rblock-add {
+  background: transparent;
+  color: var(--accent-color, #4a90d9);
+  font-weight: 700;
+  padding: 0;
+  opacity: 0;
+}
+
+.iv-anchor:hover .iv-rblock-add,
+.iv-anchor.selected .iv-rblock-add {
+  opacity: 1;
+}
+
+.iv-rblock-marker {
+  border-radius: 999px;
+  background: var(--accent-color, #4a90d9);
+  color: #fff;
+  font-size: 0.68rem;
+}
+
+/* #3: a list item is itself an anchor host, so its gutter "+"/count marker sat on top of the list bullet
+   (reported as "the + goes behind the bullet — hard to find"). Give lists a deterministic indent and push
+   the list-item affordance clear to the LEFT of the bullet, roughly aligning it with the gutter used by the
+   other blocks. Non-list hosts (paragraph, heading, table row) keep the default -24px offset above. */
+.iv-rendered ul,
+.iv-rendered ol {
+  padding-left: 2em;
+}
+
+.iv-rendered li.iv-anchor-host > .iv-rblock-add,
+.iv-rendered li.iv-anchor-host > .iv-rblock-marker {
+  left: -3.4em;
+}
+
+/* #4 highlight mode: hide the "+" add affordances in BOTH views (the existing comment-count markers stay,
+   so threads remain discoverable). Plus mode simply lacks the .iv-mode-highlight class, restoring them. */
+.iv-mode-highlight .iv-line-add,
+.iv-mode-highlight .iv-rblock-add {
+  display: none;
+}
+
+/* The floating "Add comment" button shown at a text selection in highlight mode. position:fixed, placed
+   from the selection's viewport rect in JS. */
+.iv-float-add {
+  position: fixed;
+  z-index: 1000;
+  display: none;
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid var(--accent-color, #4a90d9);
+  border-radius: 6px;
+  background: var(--accent-color, #4a90d9);
+  color: var(--text-color--on-accent, #fff);
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+}
+
+.iv-float-add:hover {
+  filter: brightness(1.05);
+}
+
+/* ---- source with line gutter ---- */
+.iv-code,
+.iv-code-block {
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.25));
+  border-radius: 10px;
+  background: var(--card-background, var(--background, #fff));
+  overflow: auto;
+  font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.iv-code-block {
+  padding: 10px 12px;
+  margin: 0;
+}
+
+.iv-line {
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  padding-left: 26px; /* room for the + affordance */
+}
+
+.iv-line:hover {
+  background: var(--item-background--hover, rgba(128, 128, 128, 0.08));
+}
+
+.iv-line.selected {
+  background: var(--item-background--active, rgba(74, 144, 217, 0.16));
+}
+
+.iv-line.has-comments {
+  box-shadow: inset 3px 0 0 0 var(--accent-color, #4a90d9);
+}
+
+.iv-line-add {
+  position: absolute;
+  left: 2px;
+  top: 0;
+  width: 20px;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--accent-color, #4a90d9);
+  font-weight: 700;
+  cursor: pointer;
+  opacity: 0;
+  line-height: 1.55;
+}
+
+.iv-line:hover .iv-line-add,
+.iv-line.selected .iv-line-add {
+  opacity: 1;
+}
+
+.iv-lnum {
+  flex: 0 0 auto;
+  min-width: 3ch;
+  padding: 0 12px 0 4px;
+  text-align: right;
+  color: var(--text-color-secondary, #9a9a9a);
+  user-select: none;
+}
+
+.iv-lcode {
+  flex: 1 1 auto;
+  white-space: pre;
+  overflow-wrap: normal;
+  padding-right: 12px;
+  background: transparent;
+}
+
+.iv-line-marker {
+  flex: 0 0 auto;
+  align-self: center;
+  margin: 0 8px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--accent-color, #4a90d9);
+  color: #fff;
+  font-size: 0.68rem;
+  line-height: 18px;
+  text-align: center;
+  cursor: pointer;
+}
+
+/* ---- edit mode ---- */
+.iv-edit-wrap {
+  display: flex;
+}
+
+.iv-edit-area {
+  width: 100%;
+  min-height: 460px;
+  font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  padding: 12px;
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.4));
+  border-radius: 10px;
+  background: var(--input-background, var(--background, #fff));
+  color: var(--text-color, #2b2b2b);
+  resize: vertical;
+}
+
+/* ---- comments ---- */
+.iv-thread {
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.25));
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  background: var(--card-background, var(--background, #fff));
+}
+
+.iv-thread-title {
+  font-size: 0.95rem;
+  margin: 0 0 10px 0;
+}
+
+.iv-line-thread-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.iv-clear-line {
+  border: 0;
+  background: transparent;
+  color: var(--text-color-secondary, #6a6a6a);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.iv-comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.iv-comment {
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.2));
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: var(--background, #fff);
+}
+
+.iv-comment.resolved {
+  opacity: 0.6;
+}
+
+/* Threaded replies: indented under their parent with a left rail so an "AI response" reads as a nested
+   answer to the reviewer's comment rather than a sibling. Threads are one level deep (see ViewStore). */
+.iv-reply-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 0 18px;
+  padding-left: 12px;
+  border-left: 2px solid var(--input-border, rgba(128, 128, 128, 0.25));
+}
+
+.iv-comment.iv-reply {
+  background: var(--item-background--hover, rgba(128, 128, 128, 0.05));
+}
+
+.iv-comment-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+  font-size: 0.8rem;
+}
+
+.iv-comment-author {
+  font-weight: 600;
+}
+
+.iv-comment-time {
+  color: var(--text-color-secondary, #6a6a6a);
+}
+
+.iv-comment-body {
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.iv-comment-body p:first-child {
+  margin-top: 0;
+}
+
+.iv-comment-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* The verbatim text a comment was highlighted on (highlight-select). Quoted context shown above the comment
+   body; rendered via textContent, so it appears exactly as highlighted (a sub-phrase or a multi-line span). */
+.iv-comment-quote {
+  margin: 2px 0 6px;
+  padding: 4px 10px;
+  border-left: 3px solid var(--accent-color, #4a90d9);
+  border-radius: 0 6px 6px 0;
+  background: var(--item-background--hover, rgba(128, 128, 128, 0.06));
+  color: var(--text-color-secondary, #6a6a6a);
+  font-size: 0.82rem;
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+
+.iv-comment-foot {
+  margin-top: 6px;
+}
+
+.iv-link-btn {
+  border: 0;
+  background: transparent;
+  color: var(--accent-color, #4a90d9);
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.8rem;
+}
+
+/* ---- composer ---- */
+.iv-composer textarea {
+  width: 100%;
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.4));
+  border-radius: 8px;
+  background: var(--input-background, var(--background, #fff));
+  color: var(--text-color, #2b2b2b);
+  padding: 8px;
+  font: inherit;
+  resize: vertical;
+}
+
+.iv-composer-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.iv-composer-err {
+  color: var(--error-color, #d54c53);
+  font-size: 0.82rem;
+}
+
+/* Preview of the highlighted selection a pending comment will be attached to (highlight mode). Mirrors the
+   posted comment's quote block so the reviewer sees exactly what will be captured before submitting. */
+.iv-composer-quote {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  border-left: 3px solid var(--accent-color, #4a90d9);
+  border-radius: 0 6px 6px 0;
+  background: var(--item-background--hover, rgba(128, 128, 128, 0.06));
+}
+
+.iv-quote-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-color-secondary, #6a6a6a);
+}
+
+.iv-quote-text {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--text-color, #2b2b2b);
+  overflow-wrap: anywhere;
+}
+
+/* ---- list mode ---- */
+.iv-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.iv-list-card {
+  display: block;
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.25));
+  border-radius: 10px;
+  padding: 12px 14px;
+  text-decoration: none;
+  color: inherit;
+  background: var(--card-background, var(--background, #fff));
+}
+
+.iv-list-card:hover {
+  background: var(--item-background--hover, rgba(128, 128, 128, 0.08));
+}
+
+/* ---- downloads (item #1): per-file + whole-group zip ---- */
+a.iv-download {
+  text-decoration: none; /* it is a jenkins-button rendered as an <a> */
+}
+
+/* The per-card download is a SIBLING of the card <a> (an <a> cannot nest in an <a>), floated over the
+   card's top-right so it does not disturb the card's own layout. */
+.iv-list-card-wrap {
+  position: relative;
+}
+
+.iv-list-download {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  padding: 2px 10px;
+  font-size: 0.76rem;
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.35));
+  border-radius: 999px;
+  background: var(--card-background, var(--background, #fff));
+  color: var(--link-color, var(--accent-color, #4a90d9));
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.iv-group-download {
+  margin-left: auto; /* push to the far (right) end of the flex group head */
+  font-size: 0.78rem;
+  color: var(--link-color, var(--accent-color, #4a90d9));
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.iv-list-download:hover,
+.iv-group-download:hover {
+  text-decoration: underline;
+}
+
+.iv-list-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.iv-list-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--text-color-secondary, #6a6a6a);
+  font-size: 0.82rem;
+  align-items: center;
+}
+
+/* ---- grouped listing (folders / dynamic files, review vs info) ---- */
+.iv-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 16px;
+}
+
+.iv-chip-btn {
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.35));
+  background: var(--card-background, var(--background, #fff));
+  color: var(--text-color, #2b2b2b);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.iv-chip-btn:hover {
+  background: var(--item-background--hover, rgba(128, 128, 128, 0.12));
+}
+
+.iv-chip-btn.active {
+  background: var(--accent-color, #4a90d9);
+  border-color: var(--accent-color, #4a90d9);
+  color: var(--text-color--on-accent, #fff);
+}
+
+.iv-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.iv-group-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--input-border, rgba(128, 128, 128, 0.2));
+}
+
+.iv-group-title {
+  font-weight: 600;
+  font-size: 0.98rem;
+}
+
+.iv-group-count {
+  color: var(--text-color-secondary, #6a6a6a);
+  font-size: 0.8rem;
+}
+
+/*
+ * "Notified" flag pill (list meta rows, group heads and the job table). Named .iv-flag rather than
+ * .iv-badge on purpose: bell.css is loaded globally on every page and defines .iv-badge as a 10px
+ * circular build-history dot (width/height/border-radius). Sharing that class merged both rule sets,
+ * collapsing this label into a 10px circle so the text overflowed onto the adjacent "N comment(s)".
+ * A distinct class removes the collision regardless of stylesheet load order.
+ */
+.iv-flag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.6;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.iv-flag-notified {
+  color: var(--accent-color, #4a90d9);
+  background: var(--item-background--active, rgba(74, 144, 217, 0.16));
+}
+
+/*
+ * "Build deleted" marker on the per-job table: a muted (not alarming) pill shown when a review's owning
+ * build has been removed. The review is kept for its history, so this is informational rather than an
+ * error. Uses a neutral grey with an explicit rgba fallback so it renders under any theme, light or dark.
+ */
+.iv-flag-deleted {
+  color: var(--text-color-secondary, #6b7178);
+  background: rgba(128, 128, 128, 0.16);
+}
+
+.iv-list-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.iv-list-title-row .iv-list-title {
+  margin-bottom: 0;
+}
+
+.iv-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.iv-tag-review {
+  color: var(--warning-color, #c1873b);
+  border-color: var(--warning-color, #c1873b);
+}
+
+.iv-tag-info {
+  color: var(--text-color-secondary, #6a6a6a);
+  border-color: var(--input-border, rgba(128, 128, 128, 0.4));
+}
+
+.iv-list-file {
+  font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 0.78rem;
+}
+
+.iv-info-note {
+  color: var(--text-color-secondary, #6a6a6a);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.iv-filter-search {
+  min-width: 220px;
+  flex: 0 1 320px;
+}
+
+.iv-job-group-head th {
+  background: var(--item-background--hover, rgba(128, 128, 128, 0.08));
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.iv-line-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 4px 2px;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.iv-line-nav-item:hover {
+  background: var(--item-background--hover, rgba(128, 128, 128, 0.08));
+  border-radius: 6px;
+}
+
+/* #5: line-context snippet in the selected-line thread head and the line-comment navigation list. */
+.iv-line-snippet {
+  font-weight: 400;
+  font-size: 0.85em;
+  color: var(--text-color-secondary, #6a6a6a);
+}
+
+.iv-line-nav-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-color-secondary, #6a6a6a);
+  font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 0.78rem;
+}
+
+.iv-line-nav-count {
+  flex: 0 0 auto;
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--item-background--hover, rgba(128, 128, 128, 0.15));
+  font-size: 0.72rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* ---- flash ---- */
+.iv-flash {
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 0.88rem;
+}
+
+.iv-flash-ok {
+  background: var(--item-background--active, rgba(58, 157, 93, 0.15));
+  color: var(--success-color, #3a9d5d);
+}
+
+.iv-flash-error {
+  background: rgba(213, 76, 83, 0.12); /* fallback for browsers without color-mix */
+  background: color-mix(in srgb, var(--error-color, #d54c53) 14%, transparent);
+  color: var(--error-color, #d54c53);
+}
+
+/* ---- job review table ---- */
+.iv-job-table {
+  margin-top: 12px;
+}
+
+/* ---- Prism token colours keyed to Jenkins semantic variables (theme-aware). The prism-api adjunct
+   loads the engine + line-numbers CSS but no base theme, so we colour tokens ourselves. ---- */
+.iv-code .token.comment,
+.iv-code-block .token.comment,
+.iv-code .token.prolog,
+.iv-code .token.doctype,
+.iv-code .token.cdata {
+  color: var(--text-color-secondary, #7d8590);
+  font-style: italic;
+}
+
+.iv-code .token.punctuation,
+.iv-code-block .token.punctuation {
+  color: var(--text-color-secondary, #7d8590);
+}
+
+.iv-code .token.keyword,
+.iv-code-block .token.keyword,
+.iv-code .token.selector,
+.iv-code .token.tag,
+.iv-code .token.boolean,
+.iv-code .token.atrule,
+.iv-code .token.important {
+  color: var(--accent-color, #4a90d9);
+}
+
+.iv-code .token.string,
+.iv-code-block .token.string,
+.iv-code .token.char,
+.iv-code .token.attr-value,
+.iv-code .token.regex,
+.iv-code .token.inserted {
+  color: var(--success-color, #3a9d5d);
+}
+
+.iv-code .token.number,
+.iv-code-block .token.number,
+.iv-code .token.constant,
+.iv-code .token.symbol {
+  color: var(--warning-color, #c1873b);
+}
+
+.iv-code .token.function,
+.iv-code-block .token.function,
+.iv-code .token.class-name,
+.iv-code .token.property {
+  color: var(--accent-color, #4a90d9);
+  font-weight: 600;
+}
+
+.iv-code .token.deleted {
+  color: var(--error-color, #d54c53);
+}
+
+/* ---- experimental run-overview card (InteractiveViewRunTab/widget.jelly) ---- */
+.iv-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Lists all of the build's reviews but caps the visible height to ~10 compact rows and scrolls the
+   rest; the "View all reviews" link (.iv-more) stays pinned below, outside this scroll area. */
+.iv-overview-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 24rem;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.iv-overview-group-head {
+  font-weight: 600;
+  color: var(--text-color, #2b2b2b);
+  margin-bottom: 6px;
+}
+
+.iv-overview-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--input-border, rgba(128, 128, 128, 0.18));
+}
+
+.iv-overview-row:last-child {
+  border-bottom: 0;
+}
+
+/* Title (link) stacked over the muted file name; takes the remaining row width and truncates. */
+.iv-overview-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.iv-overview-file {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--link-color, var(--accent-color, #4a90d9));
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.iv-overview-file:hover {
+  text-decoration: underline;
+}
+
+.iv-overview-doc {
+  font-size: 12px;
+  color: var(--text-color-secondary, #8a8a8a);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iv-overview-comments {
+  font-size: 12px;
+  color: var(--text-color-secondary, #8a8a8a);
+  font-variant-numeric: tabular-nums;
+}
+
+.iv-more {
+  color: var(--link-color, var(--accent-color, #4a90d9));
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.iv-more:hover {
+  text-decoration: underline;
+}

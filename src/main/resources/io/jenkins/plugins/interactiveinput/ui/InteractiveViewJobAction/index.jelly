@@ -1,0 +1,90 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Per-job "Interactive View" page: lists every review published for this job (across builds) that the
+  current viewer may read, each linking to that build's review editor. Rendered server-side (all values
+  are escaped by the default Jelly escaping) and grouped by report/folder; a small client filter
+  (viewer.js, mounted on [data-iv-table-filter]) narrows by text, "Notified" and "Needs approval".
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:i="jelly:fmt">
+  <l:layout title="Interactive View - ${it.job.fullDisplayName}">
+    <l:side-panel>
+      <st:include it="${it.job}" page="sidepanel.jelly" optional="true"/>
+    </l:side-panel>
+    <l:main-panel>
+      <st:adjunct includes="io.jenkins.plugins.interactiveinput.viewer"/>
+      <h1>Interactive View</h1>
+      <p class="iv-page-sub">Reviews published for <strong>${it.job.fullDisplayName}</strong>.</p>
+      <j:choose>
+        <j:when test="${empty(it.reviews)}">
+          <div class="iv-empty">No reviews have been published for this job yet.</div>
+        </j:when>
+        <j:otherwise>
+          <div class="iv-filter-chips" data-iv-table-filter="iv-job-table">
+            <input type="search" class="iv-filter-search jenkins-input" placeholder="Filter reports and files…"/>
+            <button type="button" class="iv-chip-btn active" data-filter="all">All</button>
+            <button type="button" class="iv-chip-btn" data-filter="notified">Notified</button>
+            <button type="button" class="iv-chip-btn" data-filter="needs">Needs approval</button>
+          </div>
+          <table id="iv-job-table" class="jenkins-table iv-job-table">
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Build</th>
+                <th>Mode</th>
+                <th>Status</th>
+                <th>Notified</th>
+                <th class="jenkins-table__cell--tight">Comments</th>
+                <th>Published</th>
+              </tr>
+            </thead>
+            <j:forEach var="group" items="${it.reviewGroups.entrySet()}">
+              <tbody class="iv-job-group">
+                <tr class="iv-job-group-head" data-iv-group-row="true">
+                  <th colspan="7">${group.key}</th>
+                </tr>
+                <j:forEach var="r" items="${group.value}">
+                  <tr data-iv-status="${r.status}" data-iv-mode="${r.mode}" data-iv-notify="${r.notify}"
+                      data-iv-deleted="${it.isBuildDeleted(r)}"
+                      data-iv-text="${group.key} ${r.title} ${r.fileName}">
+                    <td>
+                      <j:choose>
+                        <j:when test="${it.isBuildDeleted(r)}">${r.title}</j:when>
+                        <j:otherwise>
+                          <a href="${rootURL}/${it.job.url}${r.buildNumber}/interactive-view/?doc=${r.id}">${r.title}</a>
+                        </j:otherwise>
+                      </j:choose>
+                    </td>
+                    <td>
+                      #${r.buildNumber}
+                      <j:if test="${it.isBuildDeleted(r)}">
+                        <span class="iv-flag iv-flag-deleted">build deleted</span>
+                      </j:if>
+                    </td>
+                    <td>
+                      <j:choose>
+                        <j:when test="${r.mode == 'info'}"><span class="iv-tag iv-tag-info">Info</span></j:when>
+                        <j:otherwise><span class="iv-tag iv-tag-review">Review</span></j:otherwise>
+                      </j:choose>
+                    </td>
+                    <td><span class="iv-status iv-status-${r.status}">${r.status}</span></td>
+                    <td>
+                      <j:if test="${r.notify}"><span class="iv-flag iv-flag-notified">Notified</span></j:if>
+                    </td>
+                    <td class="jenkins-table__cell--tight">${r.commentCount}</td>
+                    <td><i:formatDate value="${r.createdDate}" type="both" dateStyle="medium" timeStyle="short"/></td>
+                  </tr>
+                </j:forEach>
+              </tbody>
+            </j:forEach>
+          </table>
+        </j:otherwise>
+      </j:choose>
+    </l:main-panel>
+  </l:layout>
+</j:jelly>

@@ -1,0 +1,860 @@
+/**
+ * © 2026 Nokia
+ * Licensed under the MIT License
+ * SPDX-License-Identifier: MIT
+*/
+
+/*
+ * Interactive Input bell + modal + per-project widget styles.
+ * Theme-aware via Jenkins CSS custom properties (with safe fallbacks) so light and dark themes both
+ * work; contrast and focus states target WCAG 2.1 AA.
+ *
+ * The global bell is anchored inline into the header controls when possible (so it no longer overlaps
+ * the settings gear); if no header container is found it falls back to a floating control pinned to
+ * the bottom-right, well clear of the header icons.
+ */
+
+.ii-bell-container {
+  position: relative;
+  z-index: 1000;
+}
+
+/* Preferred: inline among the header's top-right controls. */
+.ii-bell-container.ii-bell-inline {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 4px;
+}
+
+/* Fallback: floating control pinned bottom-right, clear of the header settings gear. */
+.ii-bell-container.ii-bell-fixed {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+}
+
+/* When floating bottom-right, the dropdown opens upward. */
+.ii-bell-fixed .ii-dropdown {
+  top: auto;
+  bottom: 46px;
+}
+
+/*
+ * The bell matches the native header action icons (flat, transparent, monochrome) instead of a
+ * bespoke filled circle, so it sits consistently among the search/gear/user icons. The pending
+ * count is conveyed by the red badge, not by tinting the icon.
+ */
+.ii-bell-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.ii-bell-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.ii-bell-btn:hover {
+  background: var(--item-background--hover);
+}
+
+.ii-bell-btn:focus-visible {
+  outline: 2px solid var(--focus-input-border);
+  outline-offset: 2px;
+}
+
+/*
+ * Floating fallback only: a flat, transparent button would be invisible off the header, so the
+ * fixed (bottom-right) variant keeps a bordered, elevated surface.
+ */
+.ii-bell-fixed .ii-bell-btn {
+  border: 1px solid var(--input-border);
+  border-radius: 50%;
+  background: var(--card-background);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.ii-bell-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  /* Shown layout; bell.js toggles the core .jenkins-hidden class (display:none) to hide/show it (B14),
+   * so the "shown" display value lives here rather than being hard-coded inline in JS. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  background: var(--error-color, #d54c53);
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+/*
+ * Sidebar task-link pending count: a native Jenkins pill (jenkins-badge) inserted client-side by
+ * bell.js (mountTaskLink) rather than "(N)" appended to the label text. This only adds the spacing
+ * next to the label; the pill's colours/shape come from core's jenkins-badge classes.
+ */
+.ii-task-badge {
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.ii-dropdown {
+  position: absolute;
+  top: 42px;
+  right: 0;
+  width: 340px;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--background, #fff);
+  color: var(--text-color, #2b2b2b);
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.35));
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.ii-dropdown-header {
+  padding: 10px 14px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--input-border, rgba(128, 128, 128, 0.25));
+}
+
+.ii-empty {
+  padding: 16px 14px;
+  color: var(--text-color-secondary, #6a6a6a);
+}
+
+.ii-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ii-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--input-border, rgba(128, 128, 128, 0.15));
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ii-item:hover,
+.ii-item:focus-visible {
+  background: var(--item-background--hover);
+  outline: none;
+}
+
+.ii-item-prompt {
+  font-weight: 600;
+}
+
+.ii-item-ref {
+  font-size: 12px;
+  color: var(--text-color-secondary, #6a6a6a);
+}
+
+.ii-item-by {
+  font-size: 11px;
+  color: var(--text-color-secondary, #6a6a6a);
+}
+
+.ii-item-outcome {
+  font-size: 12px;
+  color: var(--text-color-secondary, #6a6a6a);
+}
+
+/* ---- per-project surfaces (job-page card, job/audit widgets) ---- */
+/* The job-page inline box is now core's design-library card (<l:card> -> .jenkins-card). This wrapper
+ * only supplies the bottom spacing the card itself omits (cards are meant to be laid out by a parent). */
+.ii-jobcard {
+  margin: 0 0 1em;
+}
+
+/* Item 3: reproduce the old inline-box header inside the card — the operator's configured icon sits to
+ * the LEFT of a bold title and the whole header pulses slowly in red to catch the eye (the behaviour of
+ * the removed .ii-jobbox-title). Core lays the card title out as flex with the controls pushed to the
+ * right (justify-content:space-between); we group them at the start and pull the icon in front. */
+.ii-jobcard .jenkins-card__title {
+  justify-content: flex-start;
+  gap: 8px;
+  color: var(--error-color, #d54c53);
+  font-weight: 700;
+  animation: ii-attn-pulse 1.7s ease-in-out infinite;
+}
+
+.ii-jobcard .jenkins-card__controls {
+  order: -1; /* configured icon to the LEFT of the title text */
+  margin-right: 0; /* cancel core's negative right margin */
+  color: var(--error-color, #d54c53); /* the l:icon uses currentColor */
+}
+
+.ii-jobcard .jenkins-card__controls svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ii-jobcard .jenkins-card__title {
+    animation: none;
+  }
+}
+
+/* Item 2: the card lists every pending question, but its height is capped to ~3 rows so it never grows
+ * unbounded on a busy job; beyond that the list scrolls inside the card (core already sets
+ * overflow-y:auto on .jenkins-card__content, so we only add the cap). */
+.ii-jobcard .jenkins-card__content {
+  max-height: 20rem;
+}
+
+.ii-page-sub {
+  color: var(--text-color-secondary, #6a6a6a);
+  margin: 0 0 1em;
+}
+
+.ii-widget .ii-list {
+  border: 0;
+}
+
+.ii-widget .ii-item {
+  border-bottom: 1px solid var(--input-border, rgba(128, 128, 128, 0.15));
+}
+
+/*
+ * "awaiting input" build-history badge — a small empty red dot (no icon) shown next to a build that
+ * is waiting for an answer. Clicking it opens the answer modal in place (see bell.js). It pulses
+ * slowly (ii-attn-pulse below) to catch the eye.
+ */
+.ii-badge {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 0 4px;
+  border-radius: 50%;
+  background: var(--error-color, #d54c53);
+  vertical-align: middle;
+  cursor: pointer;
+  flex: 0 0 auto; /* keep the dot round inside flex build rows */
+  text-decoration: none;
+}
+
+.ii-badge:hover,
+.ii-badge:focus-visible {
+  outline: 2px solid var(--error-color, #d54c53);
+  outline-offset: 2px;
+}
+
+/*
+ * Slow "attention" pulse for the build-list badge, so a waiting build catches the eye (in red).
+ * Deliberately gentle (opacity 1 -> ~0.4 over 1.7s). Motion is disabled for users who prefer reduced
+ * motion (WCAG 2.3.3 / vestibular safety).
+ */
+@keyframes ii-attn-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.ii-badge {
+  animation: ii-attn-pulse 1.7s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ii-badge {
+    animation: none;
+  }
+}
+
+/*
+ * Build-history badge for an OPEN interactive review (interactiveView). A small accent-coloured dot
+ * that links straight to the review editor page (not a dialog). Distinct colour from the red question
+ * badge and deliberately calm (no pulse) since a review is less time-critical than a blocked input.
+ * Defined here in the globally-loaded bell.css so the build-history list needs no heavy editor adjunct.
+ */
+.iv-badge {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 0 4px;
+  border-radius: 50%;
+  background: var(--accent-color, #4a90d9);
+  vertical-align: middle;
+  cursor: pointer;
+  flex: 0 0 auto;
+  text-decoration: none;
+}
+
+.iv-badge:hover,
+.iv-badge:focus-visible {
+  outline: 2px solid var(--accent-color, #4a90d9);
+  outline-offset: 2px;
+}
+
+/*
+ * B5 run-page attention indicator — a native build summary row (summary.jelly) that stays hidden until
+ * the build is waiting for input, then reveals with a red "input needed" cue that gently pulses
+ * (reusing ii-attn-pulse, the same attention pulse as the build-list badge and the job-page box). The
+ * icon cell and the click-to-answer link share the error colour so it reads as "needs attention". The
+ * link keeps its href (the per-build audit page) as a no-JS fallback; bell.js opens in place with JS.
+ */
+.ii-runbox-row > td:first-child,
+.ii-runbox {
+  color: var(--error-color, #d54c53);
+  animation: ii-attn-pulse 1.7s ease-in-out infinite;
+}
+
+.ii-runbox {
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ii-runbox-row > td:first-child,
+  .ii-runbox {
+    animation: none;
+  }
+}
+
+/* status pills (audit view) */
+.ii-pill {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #fff;
+  background: var(--text-color-secondary, #6a6a6a);
+}
+
+.ii-pill-waiting {
+  background: var(--accent-color, #4a90d9);
+}
+
+.ii-pill-answered {
+  background: var(--success-color, #3a9d5d);
+}
+
+.ii-pill-aborted,
+.ii-pill-expired {
+  background: var(--error-color, #d54c53);
+}
+
+/* interactiveView review statuses (shown in the bell "Reviews" section). */
+.ii-pill-open {
+  background: var(--accent-color, #4a90d9);
+}
+
+.ii-pill-approved {
+  background: var(--success-color, #3a9d5d);
+}
+
+.ii-pill-rejected {
+  background: var(--error-color, #d54c53);
+}
+
+.ii-pill-acknowledged {
+  background: var(--text-color-secondary, #6a6a6a);
+}
+
+.ii-sub-by {
+  color: var(--text-color-secondary, #6a6a6a);
+}
+
+/* audit modal: static choices + outcome */
+.ii-audit-choices {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+}
+
+.ii-audit-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.25));
+  border-radius: 6px;
+}
+
+.ii-audit-choice.ii-chosen {
+  border-color: var(--success-color, #3a9d5d);
+  background: var(--item-background--active);
+}
+
+.ii-audit-outcome {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--panel-header-bg-color);
+}
+
+.ii-audit-outcome-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-color-secondary, #6a6a6a);
+  margin-bottom: 4px;
+}
+
+/* ---- modal: native Jenkins dialog (B8) ----
+ * The dialog shell, backdrop, elevation, radius, padding, focus-trap and light/dark theming now come
+ * from core's native <dialog class="jenkins-dialog"> (Jenkins >= 2.560), so the previous bespoke
+ * .ii-modal-overlay / .ii-modal / .ii-modal-title / .ii-modal-sub rules are gone. The title/subtitle
+ * use core's .jenkins-dialog__title / __subtitle; everything below styles the body content we own. */
+.jenkins-dialog.ii-dialog {
+  /* Core's .jenkins-dialog sets no width, so a hand-built dialog shrinks to fit its content. Pin a
+   * responsive width (caps at 600px, never wider than 94vw) so the dialog keeps a consistent size for
+   * our richer body — context + choices + free-text preview — instead of collapsing on small content. */
+  width: min(600px, 94vw);
+}
+
+.ii-context {
+  margin-bottom: 14px;
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.25));
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.ii-context summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.ii-context-body {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.ii-context-body :first-child {
+  margin-top: 0;
+}
+
+/* ---- GFM tables (commonmark TablesExtension) in the modal's context panel and free-text preview.
+   MarkdownRenderer emits a bare <table>; style it theme-aware so it isn't a borderless block. ---- */
+.ii-context-body table,
+.ii-preview table {
+  border-collapse: collapse;
+  margin: 10px 0;
+  max-width: 100%;
+  font-size: 0.95em;
+}
+
+.ii-context-body th,
+.ii-context-body td,
+.ii-preview th,
+.ii-preview td {
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.4));
+  padding: 5px 9px;
+  text-align: left; /* GFM default; per-column :---: alignment honoured by the overrides below */
+  vertical-align: top;
+}
+
+.ii-context-body th[align="center"],
+.ii-context-body td[align="center"],
+.ii-preview th[align="center"],
+.ii-preview td[align="center"] {
+  text-align: center;
+}
+
+.ii-context-body th[align="right"],
+.ii-context-body td[align="right"],
+.ii-preview th[align="right"],
+.ii-preview td[align="right"] {
+  text-align: right;
+}
+
+.ii-context-body thead th,
+.ii-preview thead th {
+  background: var(--item-background--hover, rgba(128, 128, 128, 0.1));
+  font-weight: 600;
+}
+
+.ii-choices {
+  border: 0;
+  margin: 0 0 14px;
+  padding: 0;
+}
+
+.ii-choices legend {
+  font-weight: 600;
+  margin-bottom: 6px;
+  padding: 0;
+}
+
+.ii-choice {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px;
+  margin-bottom: 6px;
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.3));
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.ii-choice:hover {
+  border-color: var(--accent-color, #4a90d9);
+}
+
+.ii-choice input[type="radio"] {
+  margin-top: 3px;
+}
+
+.ii-choice-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ii-choice-label {
+  font-weight: 600;
+}
+
+.ii-choice-why {
+  font-size: 13px;
+  color: var(--text-color-secondary, #6a6a6a);
+}
+
+.ii-freetext {
+  margin-bottom: 14px;
+}
+
+.ii-freetext label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.ii-freetext textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.4));
+  border-radius: 6px;
+  background: var(--input-background, var(--background, #fff));
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
+
+/* B24: parameter form. Controls use core's native design-library classes (jenkins-input,
+ * jenkins-select, jenkins-checkbox — verified present on the 2.568 baseline) so they are fully
+ * theme-aware; we only own the row layout and make the text/select controls fill the dialog width
+ * (core sizes them to their content, or 300px, by default). */
+.ii-params {
+  border: 0;
+  margin: 0 0 14px;
+  padding: 0;
+}
+
+.ii-params legend {
+  font-weight: 600;
+  margin-bottom: 6px;
+  padding: 0;
+}
+
+.ii-param {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.ii-param-label {
+  font-weight: 600;
+}
+
+.ii-param-desc {
+  font-size: 13px;
+  color: var(--text-color-secondary, #6a6a6a);
+}
+
+.ii-param .jenkins-input,
+.ii-param .jenkins-select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ii-param textarea.jenkins-input {
+  resize: vertical;
+}
+
+.ii-param-unsupported {
+  font-size: 13px;
+  color: var(--text-color-secondary, #6a6a6a);
+  font-style: italic;
+}
+
+/* Item 3: live SLA countdown + progress bar (job-box rows and the dialog). */
+.ii-countdown {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.ii-countdown-text {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  /* Item 5: show the "Time left" counter in red across the box, the notification centre and the
+   * dialog (it was secondary/grey until the final minute). */
+  color: var(--error-color, #d54c53);
+}
+
+.ii-countdown-urgent .ii-countdown-text {
+  font-weight: 700; /* already red; emphasise in the final minute */
+}
+
+/* Core's app-progress-bar is a fixed 104px; make it responsive inside our rows/dialog. */
+.ii-sla-bar.app-progress-bar {
+  width: 100%;
+}
+
+/* Item 4: keep the fill exactly in sync with the time left. Core floors the fill at min-width:8%, which
+ * would misreport the final stretch, so drop the floor; a 1s linear width transition makes each tick
+ * glide (in step with the counter) instead of jumping. The inner span also carries core's --animate
+ * modifier (added in bell.js) for the native moving "ticking" stripes. */
+.ii-sla-bar.app-progress-bar > span {
+  min-width: 0;
+  transition: width 1s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ii-sla-bar.app-progress-bar > span {
+    animation: none;
+    transition: none;
+  }
+}
+
+.ii-countdown-dialog {
+  margin: 0 0 14px;
+}
+
+/* Item 4: consequence note under the dialog's action buttons. */
+.ii-deny-note {
+  width: 100%;
+  margin: 4px 0 8px;
+  font-size: 12px;
+  color: var(--text-color-secondary, #6a6a6a);
+}
+
+.ii-deny-note-strong {
+  color: var(--error-color, #d54c53);
+  font-weight: 600;
+}
+
+.ii-preview-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-color-secondary, #6a6a6a);
+  margin: 8px 0 4px;
+}
+
+.ii-preview {
+  min-height: 8px;
+  font-size: 14px;
+  padding: 4px 0;
+}
+
+.ii-preview :first-child {
+  margin-top: 0;
+}
+
+.ii-error {
+  color: var(--error-color, #d54c53);
+  font-size: 13px;
+  min-height: 16px;
+  margin-bottom: 8px;
+}
+
+.ii-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/*
+ * Buttons use the Jenkins design-library classes (jenkins-button, jenkins-button--primary,
+ * jenkins-!-destructive-color) applied in bell.js, so they inherit native styling, hover states and
+ * theme-awareness (light/dark) for free. The previous bespoke .ii-btn rules were not theme-aware —
+ * they referenced a non-existent --btn-primary-bg variable and had light literal fallbacks, so the
+ * text vanished on hover in dark mode. Only the actions-row layout below is ours now.
+ */
+
+/* ---- series pager (numbered slide-through of a series of questions) ---- */
+.ii-series-nav {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.25));
+  border-radius: 6px;
+  background: var(--panel-header-bg-color);
+}
+
+.ii-series-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ii-series-pos {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* .ii-series-prev / .ii-series-next are native jenkins-button controls (see bell.js); no bespoke
+   sizing is needed — the classes remain only as behavioural hooks for tests and the pager logic. */
+
+.ii-series-pips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+/* A numbered pip per question: click to jump. Current is highlighted; answered ones are muted/green. */
+.ii-pip {
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.4));
+  border-radius: 13px;
+  background: var(--background, #fff);
+  color: var(--text-color, #2b2b2b);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ii-pip:hover {
+  border-color: var(--accent-color, #4a90d9);
+}
+
+.ii-pip.ii-current {
+  border-color: var(--accent-color, #4a90d9);
+  background: var(--accent-color, #4a90d9);
+  color: #fff;
+}
+
+.ii-pip.ii-done {
+  border-color: var(--success-color, #3a9d5d);
+  color: var(--success-color, #3a9d5d);
+}
+
+.ii-pip.ii-done.ii-current {
+  background: var(--success-color, #3a9d5d);
+  color: #fff;
+}
+
+.ii-pip:focus-visible {
+  outline: 2px solid var(--focus-input-border, #4a90d9);
+  outline-offset: 2px;
+}
+
+/* ---- interactiveOutput: KPI cards / report table (shared) ----
+ * These classes are shared by the build main-page summary (summary.jelly, which cannot load its own
+ * adjunct mid-table) and by the dedicated output/trend pages. They live here because bell.css is loaded
+ * globally by the NotificationBell page decorator, so the build summary is styled without a per-page
+ * adjunct. All colours use Jenkins theme variables so light/dark both look native.
+ */
+.io-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.io-report-title {
+  font-weight: 600;
+  color: var(--text-color, #2b2b2b);
+  margin-bottom: 8px;
+}
+
+.io-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.io-card {
+  min-width: 120px;
+  padding: 10px 14px;
+  border: 1px solid var(--input-border, rgba(128, 128, 128, 0.25));
+  border-radius: 8px;
+  background: var(--panel-header-bg-color, rgba(128, 128, 128, 0.06));
+}
+
+.io-cards-lg .io-card {
+  min-width: 150px;
+  padding: 14px 18px;
+}
+
+.io-card-value {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-color, #2b2b2b);
+  font-variant-numeric: tabular-nums;
+}
+
+.io-cards-lg .io-card-value {
+  font-size: 26px;
+}
+
+.io-unit {
+  font-size: 0.7em;
+  font-weight: 600;
+  color: var(--text-color-secondary, #8a8a8a);
+}
+
+.io-card-label {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-color-secondary, #8a8a8a);
+}
+
+.io-table {
+  margin-top: 12px;
+}
+
+.io-more {
+  color: var(--link-color, var(--accent-color, #4a90d9));
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.io-more:hover {
+  text-decoration: underline;
+}

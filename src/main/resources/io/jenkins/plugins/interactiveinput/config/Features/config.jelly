@@ -1,0 +1,84 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Functional feature toggles for Interactive Input, rendered under Manage Jenkins -> System via
+  <f:property field="features"/> in InteractiveInputGlobalConfig/config.jelly. Notification-surface
+  look-and-feel (bell, per-project centre, job-page box, icon) lives separately under Appearance.
+
+  Note: unchecked checkboxes are omitted from the submitted form, so InteractiveInputGlobalConfig#
+  configure() starts the flags all-off before binding; the checked ones are then re-enabled here.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+
+  <f:entry>
+    <f:checkbox field="askInteractiveStep" title="askInteractive pipeline step" default="true"/>
+    <f:description>
+      The durable human-in-the-loop askInteractive step. On by default.
+    </f:description>
+  </f:entry>
+
+  <f:entry>
+    <f:checkbox field="richModal" title="Rich in-page modal" default="true"/>
+    <f:description>
+      Answer questions in an in-page modal (markdown context, choices, free-text preview). When off,
+      surfaces fall back to the built-in input page. On by default.
+    </f:description>
+  </f:entry>
+
+  <f:entry>
+    <f:checkbox field="restApi" title="REST API" default="true"/>
+    <f:description>
+      Expose the JSON API under /interactive-input/api/v1 (also used by the bell and per-project
+      surfaces). On by default.
+    </f:description>
+  </f:entry>
+
+  <f:entry>
+    <f:checkbox field="inputStepBridge" title="Bridge built-in input steps"/>
+    <f:description>
+      Mirror pending built-in <code>input</code> steps into the notification surfaces (bell,
+      per-project box, sidebar and build-list badge) and forward answers back to them. Off by default;
+      turn it on to surface native <code>input</code> without changing your pipelines.
+    </f:description>
+  </f:entry>
+
+  <f:entry>
+    <f:checkbox field="interactiveView" title="interactiveView review surfaces" default="true"/>
+    <f:description>
+      The interactiveView step and its Confluence-style review page (comment / edit copy / approve),
+      sidebar link, build badge, bell "Reviews" section and REST endpoints. On by default; surfaces only
+      appear when the step is actually called.
+    </f:description>
+  </f:entry>
+
+  <f:entry>
+    <f:checkbox field="interactiveOutput" title="interactiveOutput statistics surfaces" default="true"/>
+    <f:description>
+      The interactiveOutput step and its per-build KPI cards / table plus the per-job trend chart. On by
+      default; surfaces only appear when the step is actually called.
+    </f:description>
+  </f:entry>
+
+  <f:entry>
+    <f:checkbox field="htmlRendering" title="Render HTML review documents" default="true"/>
+    <f:description>
+      Let a reviewer switch an HTML <code>interactiveView</code> document between a rendered view and its
+      source. The document is rendered in a sandboxed frame with a unique opaque origin, so its scripts
+      run (self-contained reports such as a Robot Framework <code>log.html</code> need them) but cannot
+      read this page, your session cookie or a CSRF crumb. Turn this off to keep HTML documents
+      source-only. On by default.
+    </f:description>
+  </f:entry>
+
+  <!--
+    The "Dashboard tile" (dashboardTile) feature is not implemented yet, so its toggle is intentionally
+    not rendered here (hosting review B19: don't expose UI for unavailable features). The field remains
+    on Features so a JCasC/Script-Console value still round-trips; re-add the entry when the tile ships.
+  -->
+
+</j:jelly>

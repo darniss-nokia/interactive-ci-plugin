@@ -1,0 +1,83 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Functional configuration, rendered under Manage Jenkins -> System -> "Interactive Input". Exposes
+  the per-capability feature flags (including the input-step bridge), the bell polling cadence, the
+  default SLA and retention so operators can configure them in the UI, not only via JCasC (B20:
+  previously these numeric settings were bindable but had no form, which the hosting review flagged as
+  inconsistent). All still round-trip through JCasC (unclassified.interactiveInput). Notification
+  look-and-feel stays under Manage Jenkins -> Appearance.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+  <f:section title="Interactive Input">
+    <f:property field="features"/>
+    <f:property field="polling"/>
+    <f:property field="sla"/>
+    <f:entry title="Retention (days)" field="retentionDays">
+      <f:number default="7" min="0" step="1"/>
+      <f:description>
+        Days to keep answered, aborted or expired questions before they are compacted from the store.
+        0 compacts them on the next sweep.
+      </f:description>
+    </f:entry>
+
+    <!-- Authorization restrictions (B18): these govern WHO may see/answer a question, so they are
+         functional config and live here under System, not under Appearance. Both default off and can
+         only further restrict access on top of the usual Job/Build + submitter checks. -->
+    <f:entry>
+      <f:checkbox field="userScopedNotifications"
+                  title="Show each user only their own build's notifications"/>
+      <f:description>
+        When on, the bell, per-project box, sidebar and build-list badge show a question only to the
+        user who started the owning build. Builds started by SCM, a timer, an upstream job or the
+        system have no human owner, so they stay visible to everyone. Off by default (everyone who may
+        answer sees the question).
+      </f:description>
+    </f:entry>
+
+    <f:entry>
+      <f:checkbox field="lockToBuildStarter"
+                  title="Only the build starter may answer (others can view)"/>
+      <f:description>
+        When on, only the user who started the build (or a Jenkins administrator) can submit an answer;
+        everyone else who can see the question reads it with the controls locked. Builds with no human
+        starter are not locked. This is an extra restriction on top of the usual Job/Build permission
+        and submitter checks — it never grants access. Off by default.
+      </f:description>
+    </f:entry>
+
+    <!-- B5 (auto-open): when a build page is opened while that build is waiting for interactive input,
+         bell.js pops the answer dialog automatically. This toggle only chooses HOW OFTEN it re-opens;
+         the auto-open itself is on whenever the rich modal is enabled. -->
+    <f:entry>
+      <f:checkbox field="reopenBuildDialogEveryVisit"
+                  title="Re-open the interactive-input dialog on every build-page visit"/>
+      <f:description>
+        On a build page that is waiting for interactive input, the answer dialog opens automatically.
+        [Off (default): it opens once per browser session for that build and can be dismissed — it will
+        not pop again until you open the build in a new session. On: it re-opens on every page load or
+        refresh until the input is answered.] Only applies while the rich modal is enabled; with the
+        modal off the plugin uses the native input page and never auto-opens.
+      </f:description>
+    </f:entry>
+
+    <!-- Ask #2 (automation replies): the display label shown on replies that automation (e.g. the
+         regenerate agent) posts under a reviewer's Interactive View comment. The real comment author kept
+         for audit is always the authenticated Jenkins user/token; this only changes the shown label, and a
+         reply can override it per-call via the REST API. -->
+    <f:entry title="Automation reply name" field="automationReplyName">
+      <f:textbox default="AI response"/>
+      <f:description>
+        Label shown on replies posted by automation (for example the regenerate agent) under a reviewer's
+        Interactive View comment — e.g. "AI response" or "JENKINS response". The author recorded for audit
+        is always the authenticated Jenkins user/token; this only changes the displayed label. Individual
+        replies may override it via the REST API.
+      </f:description>
+    </f:entry>
+  </f:section>
+</j:jelly>

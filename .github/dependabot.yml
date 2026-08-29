@@ -1,0 +1,19 @@
+# © 2026 Nokia
+# Licensed under the MIT License
+# SPDX-License-Identifier: MIT
+
+version: 2
+updates:
+  # Keep the Jenkins BOM, pipeline-input-step, commonmark, and other Maven
+  # dependencies current so the security scan never flags an outdated version.
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+  # Keep GitHub Actions (including the security-scan reusable workflow) current.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
