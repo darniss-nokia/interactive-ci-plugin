@@ -539,5 +539,5 @@ Initial release.
 - Requires Jenkins **2.555.2+**, Java **17+**, and `pipeline-input-step` **≥ 560**.
 - `commonmark` **0.24.0** is bundled; `configuration-as-code` is an optional runtime dependency.
 
-[Unreleased]: https://github.com/jenkinsci/interactive-input-plugin/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/jenkinsci/interactive-input-plugin/releases/tag/v0.1.0
+[Unreleased]: https://github.com/jenkinsci/interactive-ci-plugin/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/jenkinsci/interactive-ci-plugin/releases/tag/v0.1.0

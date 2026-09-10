@@ -22,7 +22,7 @@
 
   <name>Interactive CI</name>
   <description>Interactive human-in-the-loop (HITL) input for Jenkins pipelines: an in-UI notification bell and a rich approval modal for builds that pause for a human decision. Adds an askInteractive pipeline step and a versioned REST API so any external or AI agent can answer approvals programmatically, plus an opt-in bridge that surfaces existing input steps. No AI dependency at runtime.</description>
-  <url>https://github.com/jenkinsci/interactive-input-plugin</url>
+  <url>https://github.com/jenkinsci/interactive-ci-plugin</url>
   <inceptionYear>2026</inceptionYear>
 
   <licenses>
@@ -34,10 +34,10 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:https://github.com/jenkinsci/interactive-input-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkinsci/interactive-input-plugin.git</developerConnection>
+    <connection>scm:git:https://github.com/jenkinsci/interactive-ci-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/interactive-ci-plugin.git</developerConnection>
     <tag>${scmTag}</tag>
-    <url>https://github.com/jenkinsci/interactive-input-plugin</url>
+    <url>https://github.com/jenkinsci/interactive-ci-plugin</url>
   </scm>
 
   <properties>
@@ -48,7 +48,7 @@
          patch; move to .3 once 2.568.3 ships (2026-09-02). -->
     <jenkins.baseline>2.568</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.1</jenkins.version>
-    <gitHubRepo>jenkinsci/interactive-input-plugin</gitHubRepo>
+    <gitHubRepo>jenkinsci/interactive-ci-plugin</gitHubRepo>
 
     <!-- Enforcer bans required for hosting. Verified clean: tests are JUnit 5 only, main code uses
          StaplerRequest2/StaplerResponse2 (no javax.servlet), and there is no commons-lang 2 usage. -->
