@@ -729,7 +729,7 @@ See [`docs/SECURITY.md`](docs/SECURITY.md) for the threat model and how to repor
 | Java | `21` | required by the 2.568 baseline |
 | `pipeline-input-step` | `≥ 560.v56198a_642157` | **Mandatory** dependency, but functionally used only by the opt‑in `inputStepBridge` (mirrors native `input`); the modal uses core's dialog, not this. |
 | `configuration-as-code` | optional | JCasC is optional at runtime |
-| `commonmark` | `0.29.0` | supplied by the `markdown-formatter` plugin (not bundled in our HPI) — used for safe Markdown |
+| `commonmark` | `0.30.0` | supplied by the `markdown-formatter` plugin (not bundled in our HPI) — used for safe Markdown |
 
 Full dependency inventory: [`docs/BILL_OF_MATERIALS.md`](docs/BILL_OF_MATERIALS.md).
 

@@ -4,7 +4,7 @@ Software Bill of Materials for the **Interactive CI** Jenkins plugin. It records
 components that make up the artifact and the toolchain used to build it, so the build is auditable
 and reproducible.
 
-- **Generated:** 2026-07-22
+- **Generated:** 2026-09-10
 - **Method:** `mvn org.apache.maven.plugins:maven-dependency-plugin:tree` + `help:effective-pom` against the resolved `bom-2.568.x` platform.
 - **Regenerate:** see [How to regenerate](#how-to-regenerate).
 
@@ -36,7 +36,7 @@ and reproducible.
 | Bytecode target | **Java 21** (`maven.compiler.release=21`) | minimum runtime (the 2.568 baseline builds on Java 21) |
 | Apache Maven | **3.9.9** | build tool |
 | Parent POM | `org.jenkins-ci.plugins:plugin` **6.2211.v27f680c93c53** | Jenkins plugin conventions |
-| Plugin BOM | `io.jenkins.tools.bom:bom-2.568.x` **6715.v52b_c00222d1e** | dependency alignment |
+| Plugin BOM | `io.jenkins.tools.bom:bom-2.568.x` **7002.v028a_3607ddc8** | dependency alignment |
 | `maven-hpi-plugin` | **3.1814.v77d15159f9b_d** (from parent POM) | HPI packaging |
 | Jenkins core (target) | **2.568.1** | `provided` platform |
 
@@ -44,8 +44,7 @@ and reproducible.
 
 ## 3. Direct runtime dependencies
 
-These are declared in `pom.xml`. Versions marked *(BOM)* are governed by `bom-2.568.x`; the others
-are explicitly pinned.
+These are declared in `pom.xml`. Versions marked *(BOM)* are governed by `bom-2.568.x`.
 
 | Artifact | Version | Scope | License | Why it's here |
 |---|---|---|---|---|
@@ -56,10 +55,10 @@ are explicitly pinned.
 | `org.jenkins-ci.plugins.workflow:workflow-durable-task-step` | 1479.v56e587f413a_7 *(BOM)* | compile | MIT | Durable-step foundation (survives restart). |
 | `org.jenkins-ci.plugins:pipeline-input-step` | 560.v56198a_642157 *(BOM)* | compile | MIT | **Hard requirement** — modal surface + `input` bridge target. |
 | `org.jenkins-ci.plugins:structs` | 362.va_b_695ef4fdf9 *(BOM)* | compile | MIT | `@DataBoundConstructor` describable binding. |
-| `org.jenkins-ci.plugins:script-security` | 1402.1405.vc96e74964250 *(BOM)* | compile | MIT | Transitive of input-step; sandbox integration. |
+| `org.jenkins-ci.plugins:script-security` | 1412.v7737b_3405f86 *(BOM)* | compile | MIT | Transitive of input-step; sandbox integration. |
 | `io.jenkins.plugins:ionicons-api` | 94.vcc3065403257 *(BOM)* | compile | MIT | Theme-aware notification icons (bell / badge / sidebar). |
 | `io.jenkins:configuration-as-code` | 2100.vb_fd699d2a_09c *(BOM)* | compile *(optional)* | MIT | JCasC support — **optional** at runtime. |
-| `io.jenkins.plugins:markdown-formatter` | **346.v3c6828ddd39e** (pinned) | compile | MIT | **Hard requirement** — provides the commonmark library on the classpath for safe Markdown → HTML (review item B12), so no third-party jar ships in our HPI. Not managed by the BOM; `requiredCore` 2.528.3 is well below our 2.568 baseline. |
+| `io.jenkins.plugins:markdown-formatter` | **350.v70f9a_06e71fc** *(BOM)* | compile | MIT | **Hard requirement** — provides the commonmark library on the classpath for safe Markdown → HTML (review item B12), so no third-party jar ships in our HPI. `requiredCore` 2.528.3 is well below our 2.568 baseline. |
 
 ---
 
@@ -85,7 +84,7 @@ plugin (or Jenkins core) per Jenkins' plugin classloading model — **none are b
 | `io.jenkins.plugins:json-api` (org.json 20251224) | 20251224-185.v0cc18490c62c | Public Domain | configuration-as-code (optional) |
 | `io.jenkins.plugins:snakeyaml-api` | 2.5-149.v72471e9c6371 | Apache-2.0 | configuration-as-code (optional) |
 | `org.jenkins-ci.plugins:antisamy-markup-formatter` | 173.v680e3a_b_69ff3 | MIT | configuration-as-code (optional) |
-| `org.commonmark:commonmark` (+ ext-autolink, gfm-strikethrough, gfm-tables, heading-anchor, ins) | 0.29.0 | BSD-2-Clause | markdown-formatter |
+| `org.commonmark:commonmark` (+ ext-autolink, gfm-strikethrough, gfm-tables, heading-anchor, ins) | 0.30.0 | BSD-2-Clause | markdown-formatter |
 | `org.nibor.autolink:autolink` | 0.12.0 | MIT | markdown-formatter |
 | `com.vdurmont:emoji-java` | 5.1.1 | MIT | markdown-formatter |
 

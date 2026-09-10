@@ -52,7 +52,7 @@ public final class MarkdownRenderer {
      *       {@code sanitizeUrls}, and it only recognises http/https/mailto/www — never {@code javascript:}).</li>
      * </ul>
      *
-     * <p>These come from the {@code markdown-formatter} plugin dependency (commonmark 0.29.0, compile
+     * <p>These come from the {@code markdown-formatter} plugin dependency (commonmark 0.30.0, compile
      * scope) — no extra artifact is bundled into this HPI. Task-list items are intentionally not enabled:
      * that extension is not shipped by {@code markdown-formatter}, and bundling a standalone jar would
      * violate the packaging convention (and {@code hpi.strictBundledArtifacts}).

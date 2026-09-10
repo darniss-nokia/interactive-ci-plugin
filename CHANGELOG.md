@@ -228,6 +228,10 @@ All notable changes to this project are documented here. The format follows
   Appearance switch.
 
 ### Changed
+- **Plugin BOM aligned to the latest `bom-2.568.x` (`7002.v028a_3607ddc8`).** Direct plugin versions stay
+  BOM-managed; the previously pinned `markdown-formatter` `346.v3c6828ddd39e` is now taken from the BOM
+  (`350.v70f9a_06e71fc`, which supplies commonmark `0.30.0`). Markdown rendering still uses
+  `escapeHtml` + `sanitizeUrls` + `percentEncodeUrls`; no third-party jar is bundled.
 - **Interactive View bell notifications now show "started by &lt;user&gt;" like question rows do.** The
   header-bell review row (`bell.js` `viewListItem`) previously showed only the comment count. The build
   starter is already carried on the review (`ReviewDocument.createdBy`, resolved via `CauseResolver` and
