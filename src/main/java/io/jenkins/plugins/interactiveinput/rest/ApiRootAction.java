@@ -71,7 +71,7 @@ import org.kohsuke.stapler.verb.GET;
  *   GET  /interactive-input/api/v1/questions              -&gt; Questions#doIndex        (Overall/Read; ?all=true =&gt; Administer)
  *   GET  /interactive-input/api/v1/questions/{id}          -&gt; QuestionEndpoint#doIndex  (Item.READ, else 404)
  *   POST /interactive-input/api/v1/questions/{id}/answer   -&gt; QuestionEndpoint#doAnswer (Item.BUILD, else 403; 409 if settled)
- *   POST /interactive-input/api/v1/questions/{id}/abort    -&gt; QuestionEndpoint#doAbort  (Item.BUILD, else 403; 409 if settled)
+ *   POST /interactive-input/api/v1/questions/{id}/abort    -&gt; QuestionEndpoint#doAbort  (Item.CANCEL, else 403; 409 if settled)
  *   POST /interactive-input/api/v1/preview                 -&gt; V1#doPreview              (Overall/Read; safe markdown preview)
  *   GET  /interactive-input/api/v1/health                  -&gt; V1#doHealth               (anonymous)
  *   GET  /interactive-input/api/v1/views                   -&gt; Views#doIndex             (Overall/Read; ?all=true =&gt; Administer)
@@ -157,6 +157,8 @@ public class ApiRootAction implements UnprotectedRootAction {
         // Whether the current viewer may actually answer (lock-to-build-starter aware). The modal
         // uses this to lock its controls for a viewer who can see but not answer.
         o.put("canAnswer", QuestionStore.get().canAnswerEffective(q));
+        // Aborting the run is Job/Cancel (not Job/Build). The modal disables Deny when this is false.
+        o.put("canAbort", QuestionStore.get().canAbortEffective(q));
         // B27: a bridged native input that declares parameters is mirrored with no choices and no
         // free text, so it cannot be answered in our modal. Hand the client the build's own input
         // page URL so it can offer "Open the build's input page" instead of a submit that can only
@@ -494,8 +496,8 @@ public class ApiRootAction implements UnprotectedRootAction {
             if (q == null) {
                 return JsonHttpResponse.error(404, "No such question: " + id);
             }
-            if (!store.canAnswerEffective(q)) {
-                return JsonHttpResponse.error(403, "Job/Build permission (or submitter membership) required");
+            if (!store.canAbortEffective(q)) {
+                return JsonHttpResponse.error(403, "Job/Cancel permission (or submitter membership) required");
             }
             if (q.getStatus().isTerminal()) {
                 return JsonHttpResponse.error(409, "Question already " + q.getStatus());
@@ -530,6 +532,8 @@ public class ApiRootAction implements UnprotectedRootAction {
          *   <li>default — every OPEN, notify-enabled review the caller may read, across all jobs.</li>
          * </ul>
          */
+        // lgtm[jenkins/csrf] -- read-only listing, no side effects; already permission-checked below
+        @GET
         public HttpResponse doIndex(StaplerRequest2 req) {
             HttpResponse disabled = viewsDisabledOrNull();
             if (disabled != null) {
@@ -601,6 +605,8 @@ public class ApiRootAction implements UnprotectedRootAction {
         }
 
         /** GET /views/{id} — detail (metadata + comments + current content). 404 if not readable. */
+        // lgtm[jenkins/csrf] -- read-only, no side effects; store.canView(doc) below is the permission check
+        @GET
         public HttpResponse doIndex() {
             HttpResponse disabled = viewsDisabledOrNull();
             if (disabled != null) {
@@ -615,6 +621,8 @@ public class ApiRootAction implements UnprotectedRootAction {
         }
 
         /** GET /views/{id}/raw?version=n — one content version as JSON {@code {version, content}}. */
+        // lgtm[jenkins/csrf] -- read-only, no side effects; store.canView(doc) below is the permission check
+        @GET
         public HttpResponse doRaw(StaplerRequest2 req) {
             HttpResponse disabled = viewsDisabledOrNull();
             if (disabled != null) {
@@ -664,6 +672,8 @@ public class ApiRootAction implements UnprotectedRootAction {
      * allow-scripts} (an opaque origin that cannot touch this Jenkins session, even if the URL is opened
      * directly).
      */
+    // lgtm[jenkins/csrf] -- read-only, no side effects; store.canView(doc) below is the permission check
+    @GET
     public HttpResponse doRendered(StaplerRequest2 req) {
         HttpResponse disabled = viewsDisabledOrNull();
         if (disabled != null) {
@@ -700,7 +710,9 @@ public class ApiRootAction implements UnprotectedRootAction {
      * {@code Item.READ} via {@link ViewStore#canView}, else 404 (no existence leak). The download name
      * is the snapshot's basename, further sanitised by {@link DownloadHttpResponse}.
      */
-    public HttpResponse doDownload() {
+        // lgtm[jenkins/csrf] -- read-only download, no side effects; store.canView(doc) below is the permission check
+        @GET
+        public HttpResponse doDownload() {
             HttpResponse disabled = viewsDisabledOrNull();
             if (disabled != null) {
                 return disabled;
@@ -727,6 +739,8 @@ public class ApiRootAction implements UnprotectedRootAction {
          * included ({@link ViewStore#listForBuild} already applies {@code canView}). ZIP entry names are
          * sanitised (no CR/LF, no leading {@code /}, no {@code .}/{@code ..} segments) and de-duplicated.
          */
+        // lgtm[jenkins/csrf] -- read-only download, no side effects; store.canView(doc) below is the permission check
+        @GET
         public HttpResponse doDownloadGroup() {
             HttpResponse disabled = viewsDisabledOrNull();
             if (disabled != null) {

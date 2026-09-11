@@ -18,9 +18,12 @@ acknowledge within 5 business days.
 The plugin is a permission-checked surface over paused pipelines. Its guarantees:
 
 ### Authentication & authorization
-- **Permissions mirror `pipeline-input-step`.** Answering/aborting a question requires `Item/Build`
+- **Permissions split answer and abort.** Answering a question requires `Item/Build`
   on the source job — or, when a `submitterFilter` is set, membership in that user/group set (with
-  the standard `Overall/Administer` bypass). Viewing requires `Item/Read`.
+  the standard `Overall/Administer` bypass). Aborting a question aborts the run and requires
+  `Item/Cancel` (or submitter membership when a filter is set). `Item/Build` alone is not enough
+  to abort. Viewing requires `Item/Read`. Run-tab `doIndex` redirects also call
+  `getRun().checkPermission(Item.READ)` before sending the 302.
 - The REST root is an `UnprotectedRootAction` **only** so the `/health` probe is reachable; **every
   other endpoint performs its own explicit permission check.**
 - `GET /questions/{id}` returns **404** whether the question is missing *or* the caller lacks
@@ -29,9 +32,10 @@ The plugin is a permission-checked surface over paused pipelines. Its guarantees
   scoped to what the caller may answer.
 
 ### CSRF
-- All mutating endpoints (`answer`, `abort`, `preview`) are `@RequirePOST`, so Jenkins' crumb filter
-  (`CrumbExclusion`/`CrumbFilter`) is enforced at the framework level. The bell fetches a crumb from
-  `crumbIssuer` and attaches it to every write.
+- All mutating endpoints (`answer`, `abort`, `preview`, view comments/edit/decision) are
+  `@RequirePOST`, so Jenkins' crumb filter (`CrumbFilter`) is enforced at the framework level. The bell
+  fetches a crumb from `crumbIssuer` and attaches it to every write. Read-only endpoints (questions,
+  views, health, run-tab redirects) are `@GET` — Stapler-enforced GET-only, no CSRF token required.
 
 ### Cross-site scripting (XSS)
 - **Server-side sanitisation.** `contextMarkdown` and free-text are rendered by `commonmark`

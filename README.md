@@ -67,7 +67,7 @@ Both pause a pipeline and wait for a human. Here is what changes:
 | **Safe Markdown rendering** | n/a | ✅ server‑side escaped (no raw HTML/script) |
 | **JCasC configuration** | partial | ✅ every capability across `unclassified.interactiveInput` (functional) + `appearance.interactiveInputAppearance` (surfaces) |
 | Durable across controller restart | ✅ | ✅ (same durable‑step foundation) |
-| Permission model | Item.BUILD / submitter | ✅ **identical** (mirrors `pipeline-input-step`) |
+| Permission model | Item.BUILD to answer; Item.CANCEL to abort | ✅ abort is Cancel (not Build); submitter / admin still apply |
 | Runtime AI dependency | n/a | ❌ none — the API is generic HITL plumbing |
 
 **TL;DR** — `interactive-ci` is a *superset UX and an integration surface* on top of the same durable, permission‑checked foundation as `input`. You can adopt it incrementally: flip on the bridge to light up existing inputs, or write new `askInteractive` steps when you want the richer surface.
@@ -689,7 +689,10 @@ Per‑pipeline notification preferences live on each pipeline's **Configure** pa
 
 ## Security model
 
-- **Permissions mirror `pipeline-input-step`.** Answering/aborting requires `Item/Build` on the source job, or — when a `submitterFilter` is set — membership in that user/group set (with the usual `Overall/Administer` bypass). Viewing requires `Item/Read`.
+- **Permissions split answer and abort.** Answering requires `Item/Build` on the source job, or — when a
+  `submitterFilter` is set — membership in that user/group set (with the usual `Overall/Administer`
+  bypass). Aborting the question (which aborts the run) requires `Item/Cancel`, or submitter membership
+  when a filter is set. `Item/Build` alone is not enough to abort. Viewing requires `Item/Read`.
 - **CSRF everywhere it mutates.** Every `answer`/`abort`/`preview` is `@RequirePOST`, so Jenkins' crumb filter applies.
 - **No existence leak.** `GET /questions/{id}` returns `404` whether the question is missing *or* you lack `Item/Read`.
 - **Admin‑gated global view.** `?all=true` requires `Overall/Administer`; the default list is scoped to what you can answer.

@@ -265,16 +265,23 @@ class RestApiTest {
     }
 
     @Test
-    void abortRequiresBuildPermissionAndSettlesAborted(JenkinsRule j) throws Exception {
+    void abortRequiresCancelPermissionAndSettlesAborted(JenkinsRule j) throws Exception {
         secure(j);
         submit("q1");
-        // B26 (Deny): reader (Item.READ, no Item.BUILD) may not abort.
+        JSONObject asBuilder = json(get(j.createWebClient().login("builder"), j, BASE + "questions/q1"));
+        assertFalse(asBuilder.getBoolean("canAbort"), "Item.BUILD must not set canAbort");
+        JSONObject asCanceler = json(get(j.createWebClient().login("canceler"), j, BASE + "questions/q1"));
+        assertTrue(asCanceler.getBoolean("canAbort"), "Item.CANCEL must set canAbort");
+        // Reader (Item.READ only) may not abort.
         assertEquals(403, postJson(j.createWebClient().login("reader"), j, BASE + "questions/q1/abort", "{}"));
-        // Builder may abort -> the question settles ABORTED (the step then aborts the run).
-        assertEquals(200, postJson(j.createWebClient().login("builder"), j, BASE + "questions/q1/abort", "{}"));
+        // Builder has Item.BUILD but not Item.CANCEL — aborting the run is Cancel, not Build.
+        assertEquals(403, postJson(j.createWebClient().login("builder"), j, BASE + "questions/q1/abort", "{}"));
+        assertEquals(QuestionStatus.WAITING, QuestionStore.get().get("q1").getStatus());
+        // Canceler (Item.CANCEL, no Item.BUILD) may abort -> the question settles ABORTED.
+        assertEquals(200, postJson(j.createWebClient().login("canceler"), j, BASE + "questions/q1/abort", "{}"));
         assertEquals(QuestionStatus.ABORTED, QuestionStore.get().get("q1").getStatus());
         // Aborting an already-settled question -> 409.
-        assertEquals(409, postJson(j.createWebClient().login("builder"), j, BASE + "questions/q1/abort", "{}"));
+        assertEquals(409, postJson(j.createWebClient().login("canceler"), j, BASE + "questions/q1/abort", "{}"));
     }
 
     @Test
@@ -395,9 +402,11 @@ class RestApiTest {
         // "outsider" has Overall/Read but no Item.READ, to exercise the scoped-endpoint no-leak 404.
         // "mallory" is a second builder used to exercise lock-to-build-starter: she holds Item.BUILD but
         // is not the starter of the seeded build, so the lock (not a missing permission) blocks her.
-        auth.grant(Jenkins.READ).everywhere().to("reader", "builder", "admin", "outsider", "mallory");
-        auth.grant(Item.READ).everywhere().to("reader", "builder", "mallory");
+        // "canceler" holds Item.CANCEL but not Item.BUILD — aborting a run is Cancel, not Build.
+        auth.grant(Jenkins.READ).everywhere().to("reader", "builder", "admin", "outsider", "mallory", "canceler");
+        auth.grant(Item.READ).everywhere().to("reader", "builder", "mallory", "canceler");
         auth.grant(Item.BUILD).everywhere().to("builder", "mallory");
+        auth.grant(Item.CANCEL).everywhere().to("canceler");
         auth.grant(Jenkins.ADMINISTER).everywhere().to("admin");
         j.jenkins.setAuthorizationStrategy(auth);
         j.createFreeStyleProject(JOB);

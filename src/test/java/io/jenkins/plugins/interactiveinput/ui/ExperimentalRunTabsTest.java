@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
+import hudson.model.Item;
 import hudson.model.Run;
 import hudson.model.User;
 import hudson.security.ACL;
@@ -25,16 +26,22 @@ import io.jenkins.plugins.interactiveinput.output.InteractiveOutputRunTab;
 import io.jenkins.plugins.interactiveinput.store.QuestionStore;
 import io.jenkins.plugins.interactiveinput.view.ReviewDocument;
 import io.jenkins.plugins.interactiveinput.view.ViewStore;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import jenkins.model.Jenkins;
 import jenkins.model.Tab;
 import jenkins.model.experimentalflags.UserExperimentalFlagsProperty;
+import org.htmlunit.HttpMethod;
+import org.htmlunit.WebRequest;
+import org.htmlunit.html.HtmlPage;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.MockAuthorizationStrategy;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
@@ -71,6 +78,22 @@ class ExperimentalRunTabsTest {
 
     private static boolean hasTab(Run<?, ?> run, Class<? extends Tab> type) {
         return run.getRunTabs().stream().anyMatch(type::isInstance);
+    }
+
+    /**
+     * Hitting a run-tab URL must still land on the canonical action page. Guards the {@code @GET} +
+     * {@code Item.READ} scan fixes against breaking tab clicks.
+     */
+    private static void assertTabClickRedirects(JenkinsRule j, Run<?, ?> run, String tabUrl, String canonicalUrl)
+            throws Exception {
+        try (JenkinsRule.WebClient wc = j.createWebClient().login("tabClick")) {
+            HtmlPage dest = wc.goTo(run.getUrl() + tabUrl + "/");
+            String path = dest.getUrl().getPath();
+            assertTrue(
+                    path.contains("/" + canonicalUrl + "/"),
+                    "tab click must land on /" + canonicalUrl + "/, got " + path);
+            assertFalse(path.contains("/" + tabUrl + "/"), "must leave the overview route, still on " + path);
+        }
     }
 
     /** A minimal review document for exercising the overview card's grouping/heading logic. */
@@ -114,6 +137,7 @@ class ExperimentalRunTabsTest {
         // Distinct URL so the tab's own route never collides with the canonical action route.
         assertEquals("interactive-output-overview", tab.getUrlName());
         assertEquals("interactive-output", action.getUrlName());
+        assertTabClickRedirects(j, b, InteractiveOutputRunTab.URL_NAME, InteractiveOutputBuildAction.URL_NAME);
 
         // Classic viewer: no native tab, the classic summary row renders, action stays reachable via icon.
         try (ACLContext ignored = ACL.as2(user("outClassic", Map.of()).impersonate2())) {
@@ -178,6 +202,7 @@ class ExperimentalRunTabsTest {
                         false));
         InteractiveInputRunAction runAction = b.getAction(InteractiveInputRunAction.class);
         assertNotNull(runAction, "the run action attaches once the build has a question");
+        assertTabClickRedirects(j, b, InteractiveInputRunTab.URL_NAME, InteractiveInputRunAction.URL_NAME);
 
         // Classic viewer: no native tab; the classic attention row renders.
         try (ACLContext ignored = ACL.as2(user("inClassic", Map.of()).impersonate2())) {
@@ -237,6 +262,7 @@ class ExperimentalRunTabsTest {
         assertNotNull(tab, "the view tab is attached once the build has a review (layout-independent)");
         // Distinct URL so the tab's own route never collides with the canonical view action route.
         assertEquals("interactive-view-overview", tab.getUrlName());
+        assertTabClickRedirects(j, b, InteractiveViewRunTab.URL_NAME, InteractiveViewRunAction.URL_NAME);
 
         // Classic viewer: no native tab; the persisted view action stays reachable via the sidebar/overflow.
         try (ACLContext ignored = ACL.as2(user("viewClassic", Map.of()).impersonate2())) {
@@ -263,6 +289,38 @@ class ExperimentalRunTabsTest {
             assertFalse(hasTab(b, InteractiveViewRunTab.class), "no view run tab when the Appearance toggle is off");
         }
         appearance.setViewBuildCard(true);
+    }
+
+    @Test
+    void outputTabIndexRequiresItemRead(JenkinsRule j) throws Exception {
+        j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
+        MockAuthorizationStrategy auth = new MockAuthorizationStrategy();
+        auth.grant(Jenkins.READ).everywhere().to("reader", "outsider");
+        auth.grant(Item.READ, Item.BUILD).everywhere().to("reader");
+        j.jenkins.setAuthorizationStrategy(auth);
+
+        WorkflowJob p = j.createProject(WorkflowJob.class, "tab-perm");
+        p.setDefinition(new CpsFlowDefinition(
+                "interactiveOutput(reportName: 'Cost', chartType: 'bar', metrics: [[label:'C', value:'1', key:'c']])",
+                true));
+        WorkflowRun b = p.scheduleBuild2(0).waitForStart();
+        j.assertBuildStatusSuccess(j.waitForCompletion(b));
+
+        String tabPath = b.getUrl() + InteractiveOutputRunTab.URL_NAME + "/";
+        try (JenkinsRule.WebClient wc = j.createWebClient().login("reader")) {
+            HtmlPage dest = wc.goTo(tabPath);
+            assertTrue(
+                    dest.getUrl().getPath().contains("/" + InteractiveOutputBuildAction.URL_NAME + "/"),
+                    "a reader following the output tab lands on the canonical page");
+        }
+
+        JenkinsRule.WebClient outsider = j.createWebClient().login("outsider");
+        outsider.getOptions().setThrowExceptionOnFailingStatusCode(false);
+        outsider.getOptions().setRedirectEnabled(true);
+        int status = outsider.getPage(new WebRequest(new URL(j.getURL(), tabPath), HttpMethod.GET))
+                .getWebResponse()
+                .getStatusCode();
+        assertTrue(status == 403 || status == 404, "no Item.READ must not follow the tab; got " + status);
     }
 
     @Test

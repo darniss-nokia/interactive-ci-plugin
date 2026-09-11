@@ -26,8 +26,8 @@ import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
  * Permission model (§6.3, §8.3) and SLA/retention (§8.2, §8.3) coverage for {@link QuestionStore}.
- * The answer/view permission model mirrors the built-in {@code input} step: {@code Item.BUILD} to
- * answer, {@code Item.READ} to view, and {@code submitterFilter} narrows further.
+ * Answer uses {@code Item.BUILD} (or submitter); abort uses {@code Item.CANCEL} (or submitter);
+ * view uses {@code Item.READ}.
  */
 @WithJenkins
 class QuestionStorePermissionsSlaTest {
@@ -48,6 +48,28 @@ class QuestionStorePermissionsSlaTest {
             assertFalse(store.canAnswer(q), "reader lacks Item.BUILD");
             assertTrue(store.canView(q), "reader has Item.READ");
         });
+    }
+
+    @Test
+    void cancelPermissionRequiredToAbort(JenkinsRule j) throws Exception {
+        secure(j);
+        QuestionStore store = QuestionStore.get();
+        Question q = store.submit(question("qAbort", null, 0L, System.currentTimeMillis()));
+
+        as("builder", () -> assertFalse(store.canAbort(q), "Item.BUILD alone must not abort the run"));
+        as("reader", () -> assertFalse(store.canAbort(q), "Item.READ must not abort the run"));
+        as("canceler", () -> assertTrue(store.canAbort(q), "Item.CANCEL may abort the run"));
+    }
+
+    @Test
+    void submitterFilterMayAbortWithoutCancel(JenkinsRule j) throws Exception {
+        secure(j);
+        QuestionStore store = QuestionStore.get();
+        Question q = store.submit(question("qAbortSub", "alice", 0L, System.currentTimeMillis()));
+
+        as("alice", () -> assertTrue(store.canAbort(q), "listed submitter may abort (native input parity)"));
+        as("builder", () -> assertFalse(store.canAbort(q), "BUILD without CANCEL and not submitter"));
+        as("canceler", () -> assertTrue(store.canAbort(q), "CANCEL may abort even when a submitter filter is set"));
     }
 
     @Test
@@ -170,8 +192,9 @@ class QuestionStorePermissionsSlaTest {
         j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
         MockAuthorizationStrategy auth = new MockAuthorizationStrategy();
         auth.grant(Jenkins.READ).everywhere().toEveryone();
-        auth.grant(Item.READ).everywhere().to("reader", "builder", "alice");
+        auth.grant(Item.READ).everywhere().to("reader", "builder", "alice", "canceler");
         auth.grant(Item.BUILD).everywhere().to("builder", "alice");
+        auth.grant(Item.CANCEL).everywhere().to("canceler");
         j.jenkins.setAuthorizationStrategy(auth);
         j.createFreeStyleProject(JOB);
     }

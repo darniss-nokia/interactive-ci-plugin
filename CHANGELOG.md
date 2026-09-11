@@ -228,6 +228,11 @@ All notable changes to this project are documented here. The format follows
   Appearance switch.
 
 ### Changed
+- **Aborting a waiting question now requires `Item.CANCEL`, not `Item.BUILD`.** `POST …/questions/{id}/abort`
+  (the modal Deny button) aborts the run, so it follows Jenkins Job/Cancel. A user who can only start
+  builds can no longer abort one this way. Listed submitters and administrators still can, matching
+  native `input` when a submitter list is set. The JSON payload now includes `canAbort`; the modal
+  disables Deny when it is false.
 - **Plugin BOM aligned to the latest `bom-2.568.x` (`7002.v028a_3607ddc8`).** Direct plugin versions stay
   BOM-managed; the previously pinned `markdown-formatter` `346.v3c6828ddd39e` is now taken from the BOM
   (`350.v70f9a_06e71fc`, which supplies commonmark `0.30.0`). Markdown rendering still uses
@@ -296,6 +301,17 @@ All notable changes to this project are documented here. The format follows
   hidden `[data-ii-tasklink]` controller (even at zero) that `bell.js` uses to poll the scoped endpoint
   and re-label the sidebar row — and hide it at zero / re-show it when work arrives — so the number no
   longer stays stale until a full page reload.
+
+### Security
+- **Jenkins Security Scan (13 findings) addressed without changing behaviour.** Read-only view REST
+  methods (`GET /views`, `/views/{id}`, `/raw`, `/rendered`, `/download`, `/downloadGroup`) now carry
+  `@GET` plus `lgtm[jenkins/csrf]`, matching the existing questions endpoints — they were already
+  permission-checked (`Jenkins.READ` / `ViewStore.canView`) and have no side effects, so `@RequirePOST`
+  would have broken fetch and download. The three experimental run-tab `doIndex` redirects
+  (`InteractiveOutputRunTab`, `InteractiveInputRunTab`, `InteractiveViewRunTab`) are likewise `@GET` and
+  now call `getRun().checkPermission(Item.READ)` before the 302; tab clicks still land on the canonical
+  action page. `Metric.key` is a trend-chart series id (Pipeline DSL `key`), not a secret; the
+  `jenkins/plaintext-storage` match on the field name is suppressed in-source.
 
 ### Fixed
 - **Every surface now opens a build's multi-question "series" as one numbered stepper.** Observed failure

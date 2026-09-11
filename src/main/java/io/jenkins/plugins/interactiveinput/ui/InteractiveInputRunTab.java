@@ -8,6 +8,7 @@ import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Action;
+import hudson.model.Item;
 import hudson.model.Run;
 import io.jenkins.plugins.interactiveinput.config.InteractiveInputAppearanceConfig;
 import io.jenkins.plugins.interactiveinput.config.InteractiveInputGlobalConfig;
@@ -22,6 +23,7 @@ import jenkins.model.Tab;
 import jenkins.model.TransientActionFactory;
 import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.StaplerResponse2;
+import org.kohsuke.stapler.verb.GET;
 
 /**
  * Native "Interactive Input" attention card for the experimental run overview — the experimental-layout
@@ -107,8 +109,15 @@ public class InteractiveInputRunTab extends Tab {
         return URL_NAME;
     }
 
-    /** Redirects the tab's own page to the canonical per-build audit page. */
+    /**
+     * Redirects the tab's own page to the canonical per-build audit page. GET-only (a tab click);
+     * {@link Item#READ} is checked here so the method is self-contained — the destination page
+     * enforces the same permission.
+     */
+    // lgtm[jenkins/csrf] -- read-only redirect, no side effects
+    @GET
     public void doIndex(@NonNull StaplerRequest2 req, @NonNull StaplerResponse2 rsp) throws IOException {
+        getRun().checkPermission(Item.READ);
         rsp.sendRedirect2(req.getContextPath() + "/" + getRun().getUrl() + InteractiveInputRunAction.URL_NAME + "/");
     }
 

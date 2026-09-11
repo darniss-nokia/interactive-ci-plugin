@@ -37,8 +37,12 @@ public class Metric extends AbstractDescribableImpl<Metric> implements Serializa
     @CheckForNull
     private String unit;
 
+    /**
+     * Trend-chart series id (Pipeline DSL {@code key}), not a cryptographic or API secret. Persisted
+     * as plain text because it is a public label used to join KPI points across builds.
+     */
     @CheckForNull
-    private String key;
+    private String key; // lgtm[jenkins/plaintext-storage] -- series id for the trend chart, not a secret
 
     /**
      * @param label human-readable label (required)

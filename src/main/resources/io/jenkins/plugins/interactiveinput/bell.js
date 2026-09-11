@@ -692,6 +692,7 @@
     // disabled with an explanation. `canAnswer` is only present when the server computes it, so this
     // is a no-op for older payloads.
     const locked = q.canAnswer === false;
+    const cannotAbort = q.canAbort === false;
 
     const actions = el("div", { cls: "ii-actions jenkins-dialog__buttons" });
     const answerBtn = el("button", {
@@ -742,15 +743,22 @@
         b.disabled = true;
         b.setAttribute("aria-disabled", "true");
       });
-    } else if (forwardMode) {
-      actions.appendChild(forwardBtn);
-      actions.appendChild(denyBtn); // Deny still aborts the underlying native input
     } else {
-      actions.appendChild(answerBtn);
-      if (showSkip) {
-        actions.appendChild(skipBtn);
+      if (cannotAbort) {
+        denyBtn.disabled = true;
+        denyBtn.setAttribute("aria-disabled", "true");
+        denyBtn.setAttribute("tooltip", "Job/Cancel permission required to abort the build");
       }
-      actions.appendChild(denyBtn);
+      if (forwardMode) {
+        actions.appendChild(forwardBtn);
+        actions.appendChild(denyBtn); // Deny still aborts the underlying native input
+      } else {
+        actions.appendChild(answerBtn);
+        if (showSkip) {
+          actions.appendChild(skipBtn);
+        }
+        actions.appendChild(denyBtn);
+      }
     }
     actions.appendChild(cancelBtn);
     // Item 4: spell out the consequence of a rejection so "Deny" is not mistaken for a soft dismiss — it

@@ -512,7 +512,11 @@ public class QuestionStore {
     }
 
     // ----------------------------------------------------------------------------------------
-    // Permissions — mirrors pipeline-input-step InputStepExecution#canSettle (verified against 560)
+    // Permissions — mirrors pipeline-input-step InputStepExecution (verified against 560):
+    //   canSettle / proceed  → Item.BUILD (or submitter / Administer)
+    //   preAbortCheck        → Item.CANCEL, or submitter membership when a filter is set
+    //                          (native also treats Item.BUILD as sufficient when there is no
+    //                          submitter; we do not — aborting the run is Cancel, not Build)
     // ----------------------------------------------------------------------------------------
 
     /** @return {@code true} if the current authentication may answer the question. */
@@ -533,26 +537,65 @@ public class QuestionStore {
     }
 
     /**
+     * @return {@code true} if the current authentication may abort the question (and thereby abort the
+     *     run). Requires {@link Item#CANCEL} on the source job, or — when a {@code submitterFilter} is
+     *     set — membership in that set. {@link Jenkins#ADMINISTER} and security-off always pass.
+     *     {@link Item#BUILD} alone is not enough: aborting a pipeline is Cancel, not Build.
+     */
+    public boolean canAbort(@NonNull Question q) {
+        Job<?, ?> job = findJob(q);
+        if (job == null) {
+            return false;
+        }
+        Jenkins j = Jenkins.get();
+        if (!j.isUseSecurity() || j.hasPermission(Jenkins.ADMINISTER)) {
+            return true;
+        }
+        if (job.hasPermission(Item.CANCEL)) {
+            return true;
+        }
+        String submitter = q.getSubmitterFilter();
+        if (submitter != null && !submitter.trim().isEmpty()) {
+            return isSubmitter(submitter, Jenkins.getAuthentication2());
+        }
+        return false;
+    }
+
+    /**
      * @return {@code true} if the current authentication may answer <em>after</em> applying the
      *     lock-to-build-starter switch. This is {@link #canAnswer(Question)} unless the switch is on,
      *     in which case only the build starter (or a Jenkins administrator) may answer; builds with
-     *     no human starter are never locked. This is the check the REST answer/abort endpoints and
-     *     the modal's {@code canAnswer} flag use — it can only ever restrict, never widen, access.
+     *     no human starter are never locked. This is the check the REST answer endpoint and the
+     *     modal's {@code canAnswer} flag use — it can only ever restrict, never widen, access.
      */
     public boolean canAnswerEffective(@NonNull Question q) {
-        if (!canAnswer(q)) {
-            return false;
-        }
+        return canAnswer(q) && passesLockToBuildStarter(q);
+    }
+
+    /**
+     * @return {@code true} if the current authentication may abort <em>after</em> applying the
+     *     lock-to-build-starter switch. Same restriction as {@link #canAnswerEffective(Question)}:
+     *     the lock can only ever restrict, never widen, Cancel.
+     */
+    public boolean canAbortEffective(@NonNull Question q) {
+        return canAbort(q) && passesLockToBuildStarter(q);
+    }
+
+    /**
+     * @return {@code true} unless lock-to-build-starter is on and the caller is neither the human
+     *     starter nor an administrator. Builds with no human starter are never locked.
+     */
+    private boolean passesLockToBuildStarter(@NonNull Question q) {
         if (!InteractiveInputGlobalConfig.lockToBuildStarterEnabled()) {
             return true;
         }
         Jenkins j = Jenkins.get();
         if (!j.isUseSecurity() || j.hasPermission(Jenkins.ADMINISTER)) {
-            return true; // admins can always answer (safety valve)
+            return true;
         }
         String owner = q.getStartedBy();
         if (!CauseResolver.isRealUser(owner)) {
-            return true; // no human starter to lock to
+            return true;
         }
         return userIdEquals(owner, currentUserId());
     }
