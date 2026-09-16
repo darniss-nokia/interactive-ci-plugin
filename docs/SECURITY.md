@@ -84,9 +84,16 @@ The plugin is a permission-checked surface over paused pipelines. Its guarantees
 - Every capability is a feature flag; the bridge and dashboard tile are **off by default**. Operators
   enable only what they need, via UI or JCasC.
 
+- **Outbound notify-only channels** (email / Teams / Slack) send job metadata and a Jenkins URL.
+  Webhook URLs live in Secret-text credentials (never on the job XML). Email uses Mailer SMTP.
+  Dispatch is off-thread (`jenkins.util.Timer`); credential dropdowns check `Item/Configure`.
+  Payload is metadata + link only (no review file, no question context markdown). Recipients are an
+  operator-configured list (same model as the Mailer publisher). There is no inbound answering from
+  Slack/Teams/email.
+
 ---
 
 ## Out of scope (v0.1)
 - Answering **parameterised** native inputs in-modal (they deep-link to the native form).
 - Push notifications (SSE/WebSocket) — polling only.
-- Escalation channels (Slack/email/PagerDuty) — accepted but not delivered yet.
+- Answering a question or review **from** Slack, Teams, or email.

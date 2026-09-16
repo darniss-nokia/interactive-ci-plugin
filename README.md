@@ -83,7 +83,7 @@ Both pause a pipeline and wait for a human. Here is what changes:
 - 🔗 **Console audit link** — like the built‑in `input`, the build log gets an anchored link at the point of invocation; clicking it opens the audit view showing what was displayed and what was chosen. The flow node is also marked **Paused** so stage/flow views reflect the wait, and the outcome (answered/aborted/expired, by whom) is logged.
 - 🔔 **Global notification bell** — an optional header badge with the count of questions *you* can answer, polled at a configurable cadence (no WebSocket/SSE, so it works through every corporate proxy). **Context‑scoped**: on the dashboard it lists **every** answerable question; inside a pipeline (a job/build page) it narrows to **that pipeline's** questions. **Off by default** (`notificationCentre`, under **Appearance**); anchored into the header controls (with a bottom‑right floating fallback) so it never overlaps the settings gear.
 - 🪟 **Rich modal** — Markdown context panel (**expanded by default**), radio choices each with an optional rationale, optional free‑text with a live (server‑sanitised) preview, full keyboard/focus‑trap accessibility. Shared by the bell and every per‑project surface.
-- 📨 **Per‑pipeline notification preferences** — a *Configure* section (email/Teams/recipients/webhook) that persists intent now; delivery ships in a future release.
+- 📨 **Per‑pipeline outbound notifications** — *Configure → Interactive Input notifications* adds **Email**, **Microsoft Teams**, or **Slack** channels. Notify-only (a Jenkins URL, never answering from Slack). Email uses Jenkins Mailer SMTP (including Microsoft 365). Webhook URLs are Secret-text credentials.
 - 🧩 **`askInteractive` step** — a durable pipeline step that returns the chosen id (or free text), throws on abort, and times out on SLA.
 - 📝 **`interactiveView` step** — publish a generated file — or a **whole folder / glob of dynamically‑created files** (`includes`/`dir`, one review per match) — for a **Confluence‑style review** inside Jenkins: **per‑element inline comments** (click the exact heading, paragraph, list item or table row — on the source *or* the rendered Markdown — no line‑number dropdown) plus general comments, **threaded replies** (an automation can answer under a reviewer's comment with a configurable display name — default *AI response* — while the audit author stays the real identity), an editable review **copy** with version history (the original file is never touched; edits are allowed while a review is *open* **and** while *changes are requested*), and **approve / request changes / reject / acknowledge** (or a read‑only `mode: 'info'` viewer). Non‑blocking by default, or `wait: true` to pause the pipeline on the decision — which returns the reviewer's **inline comments** so a generator (e.g. an AI agent) can regenerate on *Request changes*. The per‑job page groups reviews by report/folder with **Needs‑approval vs Informational** sections and filters; content is snapshotted durably; **malformed GFM tables are repaired** before rendering; code/HTML is shown as **escaped, syntax‑highlighted source** (never executed) via `prism-api`.
 - 📊 **`interactiveOutput` step** — publish per‑build statistics (cost, carbon footprint, resource usage, …) as **KPI cards + a filterable/sortable table** on the build page and a **per‑job chart** across builds via `echarts-api`, with a selectable `chartType` (**line / bar / pie / time‑series**) per report — time‑series plots date‑labelled metrics with a Time / Day / Month / Year granularity toggle.
@@ -193,6 +193,8 @@ When this build reaches the step it pauses, the bell lights up for everyone allo
 | `submitterFilter` | String | `null` | Comma‑separated users/groups permitted to answer (same semantics as `input`'s `submitter`). |
 | `contextMarkdown` | String | `null` | Rich context rendered (safely) in the modal. |
 | `escalation` | String | `null` | Reserved for v0.2 (Slack/email/PagerDuty). Accepted but ignored in v0.1. |
+
+![Multiple-choice-plus-user-input modal](docs/screenshots/scenarios/Scenario_multiple_choice_plus_user_input.png)
 
 **Return value**
 
@@ -625,14 +627,30 @@ A visual tour of where to configure the plugin and what it looks like in use. (T
 
 > The two authorization switches that govern *who* may see and answer a question — **Show each user only their own build's notifications** and **Only the build starter may answer (others can view)** — are functional (not look-and-feel) settings and now live under **Manage Jenkins → System → Interactive Input** (see [Configuration](#configuration-ui--jcasc)).
 
-### Per-pipeline notifications *(preview — not yet delivered)*
+### Per-pipeline notifications (email / Teams / Slack)
 
-**Where:** *&lt;your pipeline&gt; → Configure → Interactive Input notifications.* Each pipeline can declare **where** its interactive-input notifications should be pushed.
+**Where:** *&lt;your pipeline&gt; → Configure → Interactive Input notifications* (opt-in). Add one or more **channels**; each is its own extension with its own fields.
+
+- **Email** — comma-separated recipients. Sent through Jenkins **Mailer** SMTP (*Manage Jenkins → System → E-mail Notification*), so **Microsoft 365 / Outlook / Exchange** work when that SMTP is configured (`smtp.office365.com` or on-prem). There is no Microsoft Graph API.
+- **Microsoft Teams** / **Slack** — pick a **Secret text** credential whose value is the incoming-webhook URL. The URL is never stored on the job. Notify-only: the payload is job metadata plus a deep link; nobody answers from Slack/Teams.
+- **When:** `askInteractive` (and bridged `input`) on submit; `interactiveView` when `notify: true` (the default). Sends off-thread so the pipeline is not blocked. Requires a configured **Jenkins URL**.
+- Recipients are whoever the job author typed — they may not have `Item/Read` on the job (same model as the Mailer publisher).
+
+Job JCasC / Job DSL shape:
+
+```yaml
+properties:
+  - interactiveInputNotifications:
+      channels:
+        - email:
+            recipients: "ops@example.com"
+        - slack:
+            webhookCredentialsId: "slack-incoming-webhook"
+        - teams:
+            webhookCredentialsId: "teams-incoming-webhook"
+```
 
 ![Per-pipeline notification settings](docs/screenshots/settings_at_pipeline_for_push_notification.png)
-
-- Toggles for **Notify by email** and **Notify Microsoft Teams**, a **Recipients** field (comma-separated addresses / channel handles), and an optional **Webhook credentials ID** for a Teams/webhook integration.
-- **Status:** these preferences are **persisted only** — outbound delivery (email / Microsoft Teams / webhooks) ships in a future release, as the form states inline. Filling it in now is safe and forward-compatible; nothing is sent yet.
 
 ### The Interactive Input page
 
@@ -689,7 +707,7 @@ appearance:
 
 Defaults: the step, **per‑project notification centre**, the **job‑page box**, the modal, and the REST
 API are **on**; the global bell (`notificationCentre`), the bridge, and the dashboard tile are **off**.
-Per‑pipeline notification preferences live on each pipeline's **Configure** page (saved now; delivery later).
+Per‑pipeline outbound channels (email / Teams / Slack) live on each pipeline's **Configure** page.
 
 ---
 

@@ -90,6 +90,7 @@ public class ViewStore {
         LOGGER.log(Level.FINE, "published review {0} for {1} #{2}", new Object[] {
             doc.getId(), doc.getJobFullName(), doc.getBuildNumber()
         });
+        fireSubmitted(doc);
         return doc;
     }
 
@@ -783,6 +784,16 @@ public class ViewStore {
             Util.deleteRecursive(contentDir(id));
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, e, () -> "failed to delete review content dir for " + id);
+        }
+    }
+
+    private void fireSubmitted(@NonNull ReviewDocument doc) {
+        for (ViewStoreListener l : ViewStoreListener.all()) {
+            try {
+                l.onSubmitted(doc);
+            } catch (RuntimeException x) {
+                LOGGER.log(Level.WARNING, "ViewStoreListener " + l.getClass().getName() + " threw", x);
+            }
         }
     }
 

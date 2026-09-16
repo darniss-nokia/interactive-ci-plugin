@@ -13,7 +13,8 @@ import io.jenkins.plugins.interactiveinput.model.Question;
  * Extension point fired by {@link QuestionStore} on every question state transition.
  *
  * <p>Used internally for the structured audit log (§3.1 S8) and available to other plugins that want
- * to react to human-in-the-loop events (e.g. a future Slack escalation in v0.2). Implementations
+ * to react to human-in-the-loop events (e.g. outbound Slack/Teams/email via
+ * {@code NotificationDispatcher}). Implementations
  * must be non-blocking and must not throw; the store isolates each listener.
  */
 public abstract class QuestionStoreListener implements ExtensionPoint {

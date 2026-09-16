@@ -1,0 +1,12 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+  <f:entry title="Webhook credentials" field="webhookCredentialsId"
+           description="Secret text credential whose value is the Slack incoming-webhook URL. Never stored on the job.">
+    <f:select/>
+  </f:entry>
+</j:jelly>

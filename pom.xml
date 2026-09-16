@@ -86,6 +86,24 @@
       <optional>true</optional>
     </dependency>
 
+    <!-- Secret-text credentials for Slack/Teams incoming-webhook URLs (never stored plaintext). -->
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>credentials</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>plain-credentials</artifactId>
+    </dependency>
+
+    <!-- SMTP for the Email channel, including Microsoft 365 / Exchange when Mailer is configured.
+         Optional so air-gapped controllers without Mailer still load; send then no-ops. -->
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>mailer</artifactId>
+      <optional>true</optional>
+    </dependency>
+
     <!-- ECharts for the interactive-output per-job trend chart. Ships its JS/CSS as this API plugin
          (no bundled jar), version managed by the bom (bom-weekly manages echarts-api
          6.0.0-1287.vfd24c22a_3d00), so it is not pinned here. -->

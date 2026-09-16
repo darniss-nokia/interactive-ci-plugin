@@ -14,6 +14,12 @@ All notable changes to this project are documented here. The format follows
 - The empty Interactive Output job page uses a design-library `jenkins-alert` banner.
 
 ### Added
+- **Notify-only outbound channels** (email, Microsoft Teams incoming webhook, Slack incoming webhook) as a
+  `NotificationChannel` ExtensionPoint on *Configure → Interactive Input notifications*. Each channel has
+  its own config. Delivery is job metadata plus a deep link to Interactive Input / Interactive View;
+  nothing answers from Slack/Teams. Webhook URLs are Secret-text credentials; email uses Jenkins Mailer
+  SMTP (including Microsoft 365 when that SMTP is configured). Sends run on the Jenkins timer thread so
+  the pipeline is never blocked. Legacy email/Teams booleans migrate via `readResolve`.
 - **Interactive View can now render an HTML document, not just show its source.** An HTML review offers a
   **Rendered / Source** toggle (Rendered first); every other format is unchanged. Reported for a Robot
   Framework `log.html`, which previously read as 542 KB of escaped markup. Sanitising such a file into the
