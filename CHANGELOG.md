@@ -7,6 +7,7 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Changed
+- Plugin BOM aligned to the latest `bom-2.568.x` (`7020.vf38cb_40380d1`) so the hosting checker stays clean.
 - Jenkins core target is **2.568.3** (hosting review).
 - Dropped the direct `structs` plugin dependency; `@Symbol` still comes in via Pipeline (`workflow-step-api` / `pipeline-input-step`).
 - Experimental run tabs (`Interactive Input` / `Interactive View` / `Interactive Output`) now render with core's `l:run-subpage`, so clicking a tab stays on the new build UI instead of redirecting to the classic sidepanel action.

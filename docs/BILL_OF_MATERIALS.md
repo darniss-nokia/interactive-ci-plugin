@@ -36,7 +36,7 @@ and reproducible.
 | Bytecode target | **Java 21** (`maven.compiler.release=21`) | minimum runtime (the 2.568 baseline builds on Java 21) |
 | Apache Maven | **3.9.9** | build tool |
 | Parent POM | `org.jenkins-ci.plugins:plugin` **6.2211.v27f680c93c53** | Jenkins plugin conventions |
-| Plugin BOM | `io.jenkins.tools.bom:bom-2.568.x` **7002.v028a_3607ddc8** | dependency alignment |
+| Plugin BOM | `io.jenkins.tools.bom:bom-2.568.x` **7020.vf38cb_40380d1** | dependency alignment |
 | `maven-hpi-plugin` | **3.1814.v77d15159f9b_d** (from parent POM) | HPI packaging |
 | Jenkins core (target) | **2.568.3** | `provided` platform |
 

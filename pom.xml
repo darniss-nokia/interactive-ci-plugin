@@ -70,7 +70,7 @@
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-${jenkins.baseline}.x</artifactId>
-        <version>7002.v028a_3607ddc8</version>
+        <version>7020.vf38cb_40380d1</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -105,8 +105,7 @@
     </dependency>
 
     <!-- ECharts for the interactive-output per-job trend chart. Ships its JS/CSS as this API plugin
-         (no bundled jar), version managed by the bom (bom-weekly manages echarts-api
-         6.0.0-1287.vfd24c22a_3d00), so it is not pinned here. -->
+         (no bundled jar). Version is managed by the BOM, so it is not pinned here. -->
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
       <artifactId>echarts-api</artifactId>
