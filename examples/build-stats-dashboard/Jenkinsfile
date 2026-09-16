@@ -1,0 +1,52 @@
+// Demo pipeline for Interactive Output (KPI cards + per-job charts).
+// Run it a few times so the job page can trend numeric metrics across builds.
+
+pipeline {
+  agent any
+  options {
+    timestamps()
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+  }
+  stages {
+    stage('Publish build statistics') {
+      steps {
+        script {
+          def n = currentBuild.number
+          def cost = "${16 + (n * 3)}"
+          def cpu = "${240 + (n * 18)}"
+          def carbon = "0.${30 + n}"
+          def energy = "${4 + n}"
+          interactiveOutput(
+            reportName: 'Cloud spend',
+            chartType: 'bar',
+            notify: true,
+            metrics: [
+              [label: 'Total cost', value: cost, unit: 'USD', key: 'cost'],
+              [label: 'Egress', value: "${12 + n}", unit: 'GB', key: 'egress'],
+              [label: 'Object storage', value: "${80 + (n * 3)}", unit: 'GB', key: 'storage'],
+              [label: 'Region', value: 'eu-west-1']
+            ]
+          )
+          interactiveOutput(
+            reportName: 'Sustainability',
+            chartType: 'line',
+            metrics: [
+              [label: 'Carbon', value: carbon, unit: 'kgCO2e', key: 'carbon'],
+              [label: 'Energy', value: energy, unit: 'kWh', key: 'energy'],
+              [label: 'Grid', value: 'renewable mix']
+            ]
+          )
+          interactiveOutput(
+            reportName: 'Capacity mix',
+            chartType: 'pie',
+            metrics: [
+              [label: 'CPU hours', value: cpu, unit: 'h', key: 'cpu'],
+              [label: 'Memory hours', value: "${120 + (n * 8)}", unit: 'h', key: 'mem'],
+              [label: 'Disk hours', value: "${40 + n}", unit: 'h', key: 'disk']
+            ]
+          )
+        }
+      }
+    }
+  }
+}

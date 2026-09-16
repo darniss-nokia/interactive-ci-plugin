@@ -8,12 +8,10 @@ import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Action;
-import hudson.model.Item;
 import hudson.model.Run;
 import io.jenkins.plugins.interactiveinput.config.InteractiveInputAppearanceConfig;
 import io.jenkins.plugins.interactiveinput.view.ReviewDocument;
 import io.jenkins.plugins.interactiveinput.view.ViewStore;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -24,9 +22,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jenkins.model.Tab;
 import jenkins.model.TransientActionFactory;
-import org.kohsuke.stapler.StaplerRequest2;
-import org.kohsuke.stapler.StaplerResponse2;
-import org.kohsuke.stapler.verb.GET;
 
 /**
  * Native "Interactive View" card for the experimental run overview — the review counterpart of
@@ -41,15 +36,15 @@ import org.kohsuke.stapler.verb.GET;
  * {@code getRunTabs()} filters out null-icon tabs), so the classic layout is untouched and the persisted
  * {@link InteractiveViewRunAction} keeps serving its own sidebar link / overflow entry there.
  *
- * <p>Clicking the tab redirects to the canonical {@code interactive-view/} page (which owns the full
- * review editor and enforces its own permissions); the tab uses a distinct URL to avoid colliding with
- * that action's route.
+ * <p>The tab uses a distinct URL so it never collides with {@link InteractiveViewRunAction}'s route.
+ * {@code index.jelly} renders the review editor inside {@code l:run-subpage} so a tab click stays on the
+ * experimental build chrome instead of redirecting to the classic sidepanel action.
  */
 public class InteractiveViewRunTab extends Tab {
 
     private static final Logger LOGGER = Logger.getLogger(InteractiveViewRunTab.class.getName());
 
-    /** Distinct URL segment (redirects to {@link InteractiveViewRunAction#URL_NAME}). */
+    /** Distinct URL segment (does not collide with {@link InteractiveViewRunAction#URL_NAME}). */
     public static final String URL_NAME = "interactive-view-overview";
 
     public InteractiveViewRunTab(@NonNull Run<?, ?> run) {
@@ -183,15 +178,12 @@ public class InteractiveViewRunTab extends Tab {
     }
 
     /**
-     * Redirects the tab's own page to the canonical per-build review page. GET-only (a tab click);
-     * {@link Item#READ} is checked here so the method is self-contained — the destination page
-     * enforces the same permission.
+     * @return a view of this build's review action so {@code index.jelly} can reuse
+     *     {@code InteractiveViewRunAction/content.jelly} inside {@code l:run-subpage}.
      */
-    // lgtm[jenkins/csrf] -- read-only redirect, no side effects
-    @GET
-    public void doIndex(@NonNull StaplerRequest2 req, @NonNull StaplerResponse2 rsp) throws IOException {
-        getRun().checkPermission(Item.READ);
-        rsp.sendRedirect2(req.getContextPath() + "/" + getRun().getUrl() + InteractiveViewRunAction.URL_NAME + "/");
+    @NonNull
+    public InteractiveViewRunAction getViewAction() {
+        return new InteractiveViewRunAction(getRun());
     }
 
     /**

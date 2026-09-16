@@ -8,7 +8,8 @@
  * Interactive Input — shared client (vanilla JS, no framework).
  *
  * One adjunct drives every surface:
- *   - the (opt-in) global nav bell  ................  #interactive-input-bell
+ *   - the (opt-in) global nav bell  ................  #root-action-NotificationBellAction
+ *                                                 (data mount: #interactive-input-bell)
  *   - per-project job widgets  ....................  [data-ii-widget]  (data-job)
  *   - per-build audit widgets  ....................  [data-ii-audit]   (data-job + data-build)
  *
@@ -1322,31 +1323,55 @@
     const headerText = job ? "Pending for this pipeline" : "Pending questions";
     const viewsHeaderText = job ? "Reviews for this pipeline" : "Reviews";
 
-    const bellBtn = el("button", {
-      cls: "ii-bell-btn",
-      attrs: {
-        type: "button",
-        "aria-label": "Pending interactive input questions",
-        "aria-haspopup": "true",
-        "aria-expanded": "false",
-        tooltip: "Interactive Input"
-      }
-    });
-    setBellIcon(bellBtn, mount);
-    // B14: start hidden via the core jenkins-hidden class and toggle it in setCount, so we never
-    // hard-code the "shown" display value (the badge's shown layout lives in bell.css).
-    const badge = el("span", { cls: "ii-bell-badge jenkins-hidden", attrs: { "aria-hidden": "false" } });
-    bellBtn.appendChild(badge);
+    // Hosting review: core renders the header button for a primary RootAction. We only attach the
+    // live count badge (jenkins-badge jenkins-!-danger-color) and the existing dropdown. The id is
+    // root-action-${simpleName} (lib/layout/header/primaryAction.jelly).
+    const headerActionId = attr(mount, "data-header-action-id", "root-action-NotificationBellAction");
+    const headerBtn = document.getElementById(headerActionId);
 
+    // B14: start hidden via the core jenkins-hidden class and toggle it in setCount. Visual chrome
+    // comes from jenkins-badge / jenkins-!-danger-color (hosting review); .ii-bell-badge only positions.
+    const badge = el("span", {
+      cls: "ii-bell-badge jenkins-badge jenkins-!-danger-color jenkins-hidden",
+      attrs: { "aria-hidden": "false" }
+    });
     const dropdown = el("div", {
       cls: "ii-dropdown",
       attrs: { role: "menu", "aria-label": "Pending questions", hidden: "hidden" }
     });
-
     const container = el("div", { cls: "ii-bell-container" });
-    container.appendChild(bellBtn);
-    container.appendChild(dropdown);
-    anchorBell(container);
+    let bellBtn;
+
+    if (headerBtn) {
+      bellBtn = headerBtn;
+      bellBtn.classList.add("ii-bell-btn");
+      bellBtn.setAttribute("aria-haspopup", "true");
+      bellBtn.setAttribute("aria-expanded", "false");
+      container.classList.add("ii-bell-native");
+      if (headerBtn.parentNode) {
+        headerBtn.parentNode.insertBefore(container, headerBtn);
+      }
+      container.appendChild(headerBtn);
+      container.appendChild(badge);
+      container.appendChild(dropdown);
+    } else {
+      bellBtn = el("button", {
+        cls: "ii-bell-btn",
+        attrs: {
+          type: "button",
+          "aria-label": "Pending interactive input questions",
+          "aria-haspopup": "true",
+          "aria-expanded": "false",
+          tooltip: "Interactive Input"
+        }
+      });
+      setBellIcon(bellBtn, mount);
+      container.classList.add("ii-bell-fallback");
+      container.appendChild(bellBtn);
+      container.appendChild(badge);
+      container.appendChild(dropdown);
+      anchorBell(container);
+    }
     if (mount.parentNode) mount.parentNode.removeChild(mount);
 
     let questionsCache = [];
@@ -1452,7 +1477,14 @@
         .catch(noop);
     }
 
-    bellBtn.addEventListener("click", function () {
+    bellBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleDropdown();
+    });
+    badge.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
       toggleDropdown();
     });
     document.addEventListener("click", function (e) {

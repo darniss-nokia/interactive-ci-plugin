@@ -33,7 +33,7 @@
           </div>
         </div>
       </j:forEach>
-      <a class="io-more" href="${rootURL}/${it.run.url}interactive-output/">View interactive output and trend</a>
+      <a class="io-more" href="${rootURL}/${it.run.url}${it.urlName}/">View interactive output and trend</a>
     </div>
   </l:card>
 </j:jelly>

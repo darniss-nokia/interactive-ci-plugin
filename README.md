@@ -2,7 +2,7 @@
 
 > A notification bell and a rich human‑in‑the‑loop (HITL) modal for Jenkins pipelines that pause for a human decision — plus a language‑agnostic REST API so any external agent (a bot, a script, an AI copilot) can answer on a human's behalf.
 
-[![Jenkins](https://img.shields.io/badge/Jenkins-2.568.1%2B-d24939?logo=jenkins&logoColor=white)](https://www.jenkins.io/)
+[![Jenkins](https://img.shields.io/badge/Jenkins-2.568.3%2B-d24939?logo=jenkins&logoColor=white)](https://www.jenkins.io/)
 [![Java](https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white)](https://adoptium.net/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-2ea44f.svg)](LICENSE)
 [![Pipeline](https://img.shields.io/badge/Pipeline-durable-3f7cac.svg)](https://www.jenkins.io/doc/book/pipeline/)
@@ -239,6 +239,8 @@ node {
 }
 ```
 
+![Interactive View — blocking approval on the experimental build page](docs/screenshots/features/interactive-view-approval-page.png)
+
 Provide **exactly one** file source: `file`, `includes`, or `dir`.
 
 | Parameter | Type | Default | Description |
@@ -326,6 +328,10 @@ interactiveOutput(reportName: 'Cost report', chartType: 'bar', metrics: [
   [label: 'Status',      value: 'green']                       // non‑numeric: shown, but not trended
 ])
 ```
+
+![Interactive Output — per-build KPI cards and table](docs/screenshots/features/interactive-output-build.png)
+
+![Interactive Output — per-job charts across builds](docs/screenshots/features/interactive-output-job-charts.png)
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -715,7 +721,7 @@ See [`docs/SECURITY.md`](docs/SECURITY.md) for the threat model and how to repor
 
 | # | Restriction | Why |
 |---|---|---|
-| 1 | Jenkins **2.568.1+**, Java **21** | Built against the 2.568.x BOM; the 2.568 baseline requires Java 21. |
+| 1 | Jenkins **2.568.3+**, Java **21** | Built against the 2.568.x BOM; the 2.568 baseline requires Java 21. |
 | 2 | `pipeline-input-step` **≥ 560** | Needed **only for the opt‑in `inputStepBridge`** — it mirrors the native `InputStepExecution` proceed/abort contract. The rich modal's dialog is a Jenkins **core** feature (row 1), not this plugin. |
 | 3 | `askInteractive` runs in **Pipeline** jobs (not Freestyle) | It's a pipeline step; Freestyle has no step model. Freestyle/other jobs can still use the **REST API**. |
 | 4 | Notifications are **polled**, not pushed | No SSE/WebSocket in v0.1 (proxy‑friendly by design). Cadence ≥ 5s. |
@@ -728,7 +734,7 @@ See [`docs/SECURITY.md`](docs/SECURITY.md) for the threat model and how to repor
 
 | Component | Version | Notes |
 |---|---|---|
-| Jenkins core | `2.568.1+` | pinned via `bom-2.568.x` |
+| Jenkins core | `2.568.3+` | pinned via `bom-2.568.x` |
 | Java | `21` | required by the 2.568 baseline |
 | `pipeline-input-step` | `≥ 560.v56198a_642157` | **Mandatory** dependency, but functionally used only by the opt‑in `inputStepBridge` (mirrors native `input`); the modal uses core's dialog, not this. |
 | `configuration-as-code` | optional | JCasC is optional at runtime |

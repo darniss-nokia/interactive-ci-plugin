@@ -35,6 +35,9 @@ class BellHeaderAdjunctTest {
             assertNotNull(
                     page.getElementById("interactive-input-bell"),
                     "the bell data mount must stay in the body (a <div> is invalid in <head>)");
+            assertNotNull(
+                    page.getElementById(NotificationBellAction.HEADER_BUTTON_ID),
+                    "core must render the primary RootAction header button when the notification centre is on");
         }
     }
 }

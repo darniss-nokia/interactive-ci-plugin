@@ -9,9 +9,9 @@
  * Theme-aware via Jenkins CSS custom properties (with safe fallbacks) so light and dark themes both
  * work; contrast and focus states target WCAG 2.1 AA.
  *
- * The global bell is anchored inline into the header controls when possible (so it no longer overlaps
- * the settings gear); if no header container is found it falls back to a floating control pinned to
- * the bottom-right, well clear of the header icons.
+ * The global bell is a primary RootAction header button (core renders it). bell.js only attaches the
+ * pending-count badge and the dropdown. If that header button is missing, a fallback control is
+ * created and anchored inline among the header actions, or pinned bottom-right.
  */
 
 .ii-bell-container {
@@ -43,8 +43,11 @@
  * The bell matches the native header action icons (flat, transparent, monochrome) instead of a
  * bespoke filled circle, so it sits consistently among the search/gear/user icons. The pending
  * count is conveyed by the red badge, not by tinting the icon.
+ *
+ * Custom button chrome applies only to the fallback control (when the RootAction header button is
+ * absent). The core header button already has jenkins-button styling; we must not override it.
  */
-.ii-bell-btn {
+.ii-bell-fallback .ii-bell-btn {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -59,16 +62,16 @@
   cursor: pointer;
 }
 
-.ii-bell-btn svg {
+.ii-bell-fallback .ii-bell-btn svg {
   width: 20px;
   height: 20px;
 }
 
-.ii-bell-btn:hover {
+.ii-bell-fallback .ii-bell-btn:hover {
   background: var(--item-background--hover);
 }
 
-.ii-bell-btn:focus-visible {
+.ii-bell-fallback .ii-bell-btn:focus-visible {
   outline: 2px solid var(--focus-input-border);
   outline-offset: 2px;
 }
@@ -84,25 +87,15 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
+.ii-bell-container.ii-bell-native {
+  display: inline-flex;
+  align-items: center;
+}
+
 .ii-bell-badge {
   position: absolute;
   top: -4px;
   right: -4px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  /* Shown layout; bell.js toggles the core .jenkins-hidden class (display:none) to hide/show it (B14),
-   * so the "shown" display value lives here rather than being hard-coded inline in JS. */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1;
-  color: #fff;
-  background: var(--error-color, #d54c53);
-  border-radius: 8px;
-  box-sizing: border-box;
 }
 
 /*

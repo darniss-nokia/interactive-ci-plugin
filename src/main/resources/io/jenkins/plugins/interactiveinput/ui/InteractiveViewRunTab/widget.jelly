@@ -32,7 +32,7 @@
             <j:forEach var="r" items="${group.reviews}">
               <div class="iv-overview-row">
                 <div class="iv-overview-main">
-                  <a class="iv-overview-file" href="${rootURL}/${it.run.url}interactive-view/?doc=${r.id}">${r.title}</a>
+                  <a class="iv-overview-file" href="${rootURL}/${it.run.url}${it.urlName}/?doc=${r.id}">${r.title}</a>
                   <j:if test="${r.fileName != r.title}">
                     <span class="iv-overview-doc">${r.fileName}</span>
                   </j:if>
@@ -45,7 +45,7 @@
           </div>
         </j:forEach>
       </div>
-      <a class="iv-more" href="${rootURL}/${it.run.url}interactive-view/">View all reviews</a>
+      <a class="iv-more" href="${rootURL}/${it.run.url}${it.urlName}/">View all reviews</a>
     </div>
   </l:card>
 </j:jelly>

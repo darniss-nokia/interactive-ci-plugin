@@ -81,18 +81,22 @@ class ExperimentalRunTabsTest {
     }
 
     /**
-     * Hitting a run-tab URL must still land on the canonical action page. Guards the {@code @GET} +
-     * {@code Item.READ} scan fixes against breaking tab clicks.
+     * Hitting a run-tab URL must stay on that tab and render the action content inside
+     * {@code l:run-subpage} (experimental build chrome), not redirect to the classic sidepanel action.
      */
-    private static void assertTabClickRedirects(JenkinsRule j, Run<?, ?> run, String tabUrl, String canonicalUrl)
+    private static void assertTabRendersInPlace(JenkinsRule j, Run<?, ?> run, String tabUrl, String contentSelector)
             throws Exception {
+        user("tabClick", Map.of(NEW_BUILD_PAGE, "true"));
         try (JenkinsRule.WebClient wc = j.createWebClient().login("tabClick")) {
             HtmlPage dest = wc.goTo(run.getUrl() + tabUrl + "/");
             String path = dest.getUrl().getPath();
-            assertTrue(
-                    path.contains("/" + canonicalUrl + "/"),
-                    "tab click must land on /" + canonicalUrl + "/, got " + path);
-            assertFalse(path.contains("/" + tabUrl + "/"), "must leave the overview route, still on " + path);
+            assertTrue(path.contains("/" + tabUrl + "/"), "tab click must stay on /" + tabUrl + "/, got " + path);
+            assertNotNull(
+                    dest.querySelector(".app-build-bar"),
+                    "tab page must use l:run-subpage (experimental build chrome), got " + dest.getUrl());
+            assertNotNull(
+                    dest.querySelector(contentSelector),
+                    "tab page must render the action content in place; missing " + contentSelector);
         }
     }
 
@@ -137,7 +141,7 @@ class ExperimentalRunTabsTest {
         // Distinct URL so the tab's own route never collides with the canonical action route.
         assertEquals("interactive-output-overview", tab.getUrlName());
         assertEquals("interactive-output", action.getUrlName());
-        assertTabClickRedirects(j, b, InteractiveOutputRunTab.URL_NAME, InteractiveOutputBuildAction.URL_NAME);
+        assertTabRendersInPlace(j, b, InteractiveOutputRunTab.URL_NAME, ".io-page");
 
         // Classic viewer: no native tab, the classic summary row renders, action stays reachable via icon.
         try (ACLContext ignored = ACL.as2(user("outClassic", Map.of()).impersonate2())) {
@@ -202,7 +206,7 @@ class ExperimentalRunTabsTest {
                         false));
         InteractiveInputRunAction runAction = b.getAction(InteractiveInputRunAction.class);
         assertNotNull(runAction, "the run action attaches once the build has a question");
-        assertTabClickRedirects(j, b, InteractiveInputRunTab.URL_NAME, InteractiveInputRunAction.URL_NAME);
+        assertTabRendersInPlace(j, b, InteractiveInputRunTab.URL_NAME, "[data-ii-audit]");
 
         // Classic viewer: no native tab; the classic attention row renders.
         try (ACLContext ignored = ACL.as2(user("inClassic", Map.of()).impersonate2())) {
@@ -262,7 +266,7 @@ class ExperimentalRunTabsTest {
         assertNotNull(tab, "the view tab is attached once the build has a review (layout-independent)");
         // Distinct URL so the tab's own route never collides with the canonical view action route.
         assertEquals("interactive-view-overview", tab.getUrlName());
-        assertTabClickRedirects(j, b, InteractiveViewRunTab.URL_NAME, InteractiveViewRunAction.URL_NAME);
+        assertTabRendersInPlace(j, b, InteractiveViewRunTab.URL_NAME, ".iv-app");
 
         // Classic viewer: no native tab; the persisted view action stays reachable via the sidebar/overflow.
         try (ACLContext ignored = ACL.as2(user("viewClassic", Map.of()).impersonate2())) {
@@ -310,8 +314,11 @@ class ExperimentalRunTabsTest {
         try (JenkinsRule.WebClient wc = j.createWebClient().login("reader")) {
             HtmlPage dest = wc.goTo(tabPath);
             assertTrue(
-                    dest.getUrl().getPath().contains("/" + InteractiveOutputBuildAction.URL_NAME + "/"),
-                    "a reader following the output tab lands on the canonical page");
+                    dest.getUrl().getPath().contains("/" + InteractiveOutputRunTab.URL_NAME + "/"),
+                    "a reader following the output tab stays on the tab page");
+            assertTrue(
+                    dest.asNormalizedText().contains("Interactive Output"),
+                    "the tab page must render the output content, not an empty shell");
         }
 
         JenkinsRule.WebClient outsider = j.createWebClient().login("outsider");
@@ -373,6 +380,21 @@ class ExperimentalRunTabsTest {
                 ACL.as2(user("jobExp", Map.of(NEW_JOB_PAGE, "true")).impersonate2())) {
             assertFalse(
                     action.isJobBoxVisibleClassic(), "the inline box is suppressed under the experimental job page");
+        }
+    }
+
+    @Test
+    void jobOutputEmptyStateUsesDesignLibraryBanner(JenkinsRule j) throws Exception {
+        FreeStyleProject p = j.createFreeStyleProject("io-empty-banner");
+        try (JenkinsRule.WebClient wc = j.createWebClient()) {
+            wc.getOptions().setThrowExceptionOnFailingStatusCode(false);
+            HtmlPage page = wc.goTo(p.getUrl() + "interactive-output/");
+            assertNotNull(
+                    page.querySelector(".jenkins-alert.jenkins-alert-info"),
+                    "the empty Interactive Output job page must use a design-library banner");
+            assertTrue(
+                    page.asNormalizedText().contains("No output has been published"),
+                    "the banner must keep the empty-state copy");
         }
     }
 }

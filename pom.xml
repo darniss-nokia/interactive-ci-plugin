@@ -44,10 +44,9 @@
     <changelist>999999-SNAPSHOT</changelist>
     <!-- Baseline: https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/
          Bumped to 2.568 for the native Jenkins dialog component, which is core >= 2.560 (review
-         item B8). The live server was upgraded to 2.568.1 (verified 2026-07-21), so target that
-         patch; move to .3 once 2.568.3 ships (2026-09-02). -->
+         item B8). Hosting review (mawinter69, 2026-09-15): target the 2.568.3 patch. -->
     <jenkins.baseline>2.568</jenkins.baseline>
-    <jenkins.version>${jenkins.baseline}.1</jenkins.version>
+    <jenkins.version>${jenkins.baseline}.3</jenkins.version>
     <gitHubRepo>jenkinsci/interactive-ci-plugin</gitHubRepo>
 
     <!-- Enforcer bans required for hosting. Verified clean: tests are JUnit 5 only, main code uses
@@ -132,11 +131,8 @@
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>script-security</artifactId>
     </dependency>
-
-    <dependency>
-      <groupId>org.jenkins-ci.plugins</groupId>
-      <artifactId>structs</artifactId>
-    </dependency>
+    <!-- structs is not declared: @Symbol comes in transitively via workflow-step-api / pipeline-input-step
+         (hosting review, mawinter69 2026-09-15). -->
     <!-- FlowNode + PauseAction for the anchored console link / "Paused" flow-graph marker (§console audit). -->
     <dependency>
       <groupId>org.jenkins-ci.plugins.workflow</groupId>

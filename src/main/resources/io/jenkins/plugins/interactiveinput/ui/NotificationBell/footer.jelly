@@ -7,15 +7,16 @@
 
 <!--
   Injected at the end of <body> on every page where the notification centre is on (bellVisible =
-  feature enabled AND Overall/Read, which implies clientVisible). This renders only the bell mount
-  point: a hidden <div> carrying the server-provided configuration as data-* attributes plus the
-  chosen icon as a hidden <l:icon> template the client clones into the bell button. It lives here (not
-  in header.jelly) because a <div> is not valid inside <head>.
+  feature enabled AND Overall/Read, which implies clientVisible). This renders only the data mount:
+  a hidden <div> carrying the server-provided configuration as data-* attributes plus the chosen icon
+  as a hidden <l:icon> template (used only if the primary RootAction header button is missing). It
+  lives here (not in header.jelly) because a <div> is not valid inside <head>.
 
   The vanilla-JS/CSS adjunct itself is contributed earlier, from header.jelly (B21). bell.js discovers
-  this mount on DOMContentLoaded and drives polling, the dropdown and the rich modal. data-job carries
-  the current pipeline (empty on the dashboard) so the client scopes the list: all answerable
-  questions on the dashboard, only this pipeline's inside a job/build.
+  this mount on DOMContentLoaded, reuses core's #root-action-NotificationBellAction button, and
+  attaches the live badge + dropdown. data-job carries the current pipeline (empty on the dashboard)
+  so the client scopes the list: all answerable questions on the dashboard, only this pipeline's
+  inside a job/build.
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout">
   <j:if test="${it.bellVisible}">
@@ -26,6 +27,7 @@
          data-initial-count="${it.initialCount}"
          data-rich-modal="${it.richModalEnabled}"
          data-tab-badge="${it.tabNotificationBadge}"
+         data-header-action-id="${it.headerActionId}"
          style="display:none">
       <span class="ii-icon-template" style="display:none"><l:icon src="${it.iconClassName}"/></span>
     </div>

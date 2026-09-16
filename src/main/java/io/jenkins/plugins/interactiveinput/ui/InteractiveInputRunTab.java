@@ -8,22 +8,17 @@ import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Action;
-import hudson.model.Item;
 import hudson.model.Run;
 import io.jenkins.plugins.interactiveinput.config.InteractiveInputAppearanceConfig;
 import io.jenkins.plugins.interactiveinput.config.InteractiveInputGlobalConfig;
 import io.jenkins.plugins.interactiveinput.config.InteractiveInputRunPageAlertJobProperty;
 import io.jenkins.plugins.interactiveinput.store.QuestionStore;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jenkins.model.Tab;
 import jenkins.model.TransientActionFactory;
-import org.kohsuke.stapler.StaplerRequest2;
-import org.kohsuke.stapler.StaplerResponse2;
-import org.kohsuke.stapler.verb.GET;
 
 /**
  * Native "Interactive Input" attention card for the experimental run overview — the experimental-layout
@@ -38,14 +33,15 @@ import org.kohsuke.stapler.verb.GET;
  * scoping of the classic row. Live reveal/hide is handled by the global bell + auto-open dialog; this
  * server-rendered card is the in-page attention surface.
  *
- * <p>Clicking the tab redirects to the canonical {@code interactive-input/} audit page (distinct URL to
- * avoid colliding with that action's route).
+ * <p>The tab uses a distinct URL so it never collides with {@link InteractiveInputRunAction}'s route.
+ * {@code index.jelly} renders the audit view inside {@code l:run-subpage} so a tab click stays on the
+ * experimental build chrome instead of redirecting to the classic sidepanel action.
  */
 public class InteractiveInputRunTab extends Tab {
 
     private static final Logger LOGGER = Logger.getLogger(InteractiveInputRunTab.class.getName());
 
-    /** Distinct URL segment (redirects to {@link InteractiveInputRunAction#URL_NAME}). */
+    /** Distinct URL segment (does not collide with {@link InteractiveInputRunAction#URL_NAME}). */
     public static final String URL_NAME = "interactive-input-overview";
 
     public InteractiveInputRunTab(@NonNull Run<?, ?> run) {
@@ -110,15 +106,12 @@ public class InteractiveInputRunTab extends Tab {
     }
 
     /**
-     * Redirects the tab's own page to the canonical per-build audit page. GET-only (a tab click);
-     * {@link Item#READ} is checked here so the method is self-contained — the destination page
-     * enforces the same permission.
+     * @return a view of this build's audit action so {@code index.jelly} can reuse
+     *     {@code InteractiveInputRunAction/content.jelly} inside {@code l:run-subpage}.
      */
-    // lgtm[jenkins/csrf] -- read-only redirect, no side effects
-    @GET
-    public void doIndex(@NonNull StaplerRequest2 req, @NonNull StaplerResponse2 rsp) throws IOException {
-        getRun().checkPermission(Item.READ);
-        rsp.sendRedirect2(req.getContextPath() + "/" + getRun().getUrl() + InteractiveInputRunAction.URL_NAME + "/");
+    @NonNull
+    public InteractiveInputRunAction getInputAction() {
+        return new InteractiveInputRunAction(getRun());
     }
 
     /**

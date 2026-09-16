@@ -19,11 +19,13 @@ import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest2;
 
 /**
- * Injects the notification bell into every Jenkins page (§6.2.1, §8.4).
+ * Injects the notification-centre data mount and shared client into every Jenkins page (§6.2.1, §8.4).
  *
- * <p>Implemented as a {@link PageDecorator} whose {@code footer.jelly} adds a small bell element plus
- * the {@code interactive-input.bell} adjunct (vanilla JS + CSS — no framework, §8.10). The JS polls
- * the REST endpoint for the pending count and renders the dropdown and modal client-side.
+ * <p>The header <em>button</em> itself is a primary {@link hudson.model.RootAction}
+ * ({@link NotificationBellAction}); this {@link PageDecorator} only contributes {@code header.jelly}
+ * (the {@code interactive-input.bell} adjunct) and {@code footer.jelly} (a hidden data mount plus the
+ * run-scoped sidebar/console controllers). {@code bell.js} finds the core header button by
+ * {@link NotificationBellAction#HEADER_BUTTON_ID} and attaches the live pending-count badge.
  *
  * <p>The bell is context-aware: on the dashboard it lists every question the viewer can answer;
  * inside a pipeline (a page under a {@link Job}) it scopes to that pipeline's questions. The current
@@ -243,5 +245,13 @@ public class NotificationBell extends PageDecorator {
      */
     public boolean isTabNotificationBadge() {
         return InteractiveInputAppearanceConfig.tabNotificationBadgeEnabled();
+    }
+
+    /**
+     * @return the id core assigns to {@link NotificationBellAction}'s header button, so {@code bell.js}
+     *     can attach the live badge without guessing a CSS insertion point.
+     */
+    public String getHeaderActionId() {
+        return NotificationBellAction.HEADER_BUTTON_ID;
     }
 }

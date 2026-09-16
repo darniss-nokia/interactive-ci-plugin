@@ -19,7 +19,7 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
   <st:adjunct includes="io.jenkins.plugins.interactiveinput.bell"/>
   <l:card title="Interactive Input">
-    <a href="${rootURL}/${it.run.url}interactive-input/"
+    <a href="${rootURL}/${it.run.url}${it.urlName}/"
        class="ii-runbox"
        data-ii-runbox="build"
        data-root-url="${rootURL}"

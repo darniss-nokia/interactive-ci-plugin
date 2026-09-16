@@ -1,0 +1,61 @@
+// Demo pipeline for Interactive View (blocking approval).
+// Needs an agent with a workspace. The Human approval stage waits until a reviewer
+// Approve / Request changes / Reject / Acknowledge on the build's Interactive View tab.
+
+pipeline {
+  agent any
+  options {
+    timestamps()
+    buildDiscarder(logRotator(numToKeepStr: '10'))
+  }
+  stages {
+    stage('Assemble release pack') {
+      steps {
+        writeFile file: 'release-decision.md', text: '''
+# Release 2.4.0 — go / no-go
+
+**Owner:** Platform CI  ·  **Window:** 16 Sep 2026 18:00 UTC  ·  **Risk:** Medium
+
+Please review the change pack below. Approve to ship, request changes to send comments back, or reject to stop the train.
+
+## Scope
+| Stream | Change | Blast radius | Owner |
+|:-------|:-------|:------------:|------:|
+| `interactive-ci` | Native header bell + experimental run tabs | controller UI | Platform |
+| `atlas-gateway` | Canary 10% → 50% | regional | SRE |
+| `billing-api` | Schema freeze (no migrate) | none | Finance |
+
+## Checks
+- [x] Unit + 260 plugin tests green
+- [x] Canary error rate < 0.2%
+- [ ] Change ticket **CHG-1842** attached
+- [ ] Rollback rehearsed on staging
+
+## Rollback
+`helm rollback atlas-gateway 17` then disable the canary flag `release.2-4-0`.
+
+> Freeze starts at **18:00 UTC**. After approve, the pipeline tags `v2.4.0` and opens the canary.
+'''
+        echo 'Wrote release-decision.md'
+      }
+    }
+    stage('Human approval') {
+      steps {
+        script {
+          def r = interactiveView(
+            file: 'release-decision.md',
+            reportName: 'Release 2.4.0',
+            title: 'Release 2.4.0 — go / no-go',
+            mode: 'review',
+            wait: true,
+            notify: true,
+            slaMinutes: 240,
+            commentable: true,
+            editable: true
+          )
+          echo "Decision: ${r.status} by ${r.decidedBy}"
+        }
+      }
+    }
+  }
+}

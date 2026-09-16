@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- Jenkins core target is **2.568.3** (hosting review).
+- Dropped the direct `structs` plugin dependency; `@Symbol` still comes in via Pipeline (`workflow-step-api` / `pipeline-input-step`).
+- Experimental run tabs (`Interactive Input` / `Interactive View` / `Interactive Output`) now render with core's `l:run-subpage`, so clicking a tab stays on the new build UI instead of redirecting to the classic sidepanel action.
+- The notification centre is a primary `RootAction` header button (`#root-action-NotificationBellAction`). `bell.js` only attaches the live pending-count badge, using `jenkins-badge jenkins-!-danger-color`.
+- The empty Interactive Output job page uses a design-library `jenkins-alert` banner.
+
 ### Added
 - **Interactive View can now render an HTML document, not just show its source.** An HTML review offers a
   **Rendered / Source** toggle (Rendered first); every other format is unchanged. Reported for a Robot

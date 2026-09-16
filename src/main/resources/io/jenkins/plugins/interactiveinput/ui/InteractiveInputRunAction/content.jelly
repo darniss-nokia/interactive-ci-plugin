@@ -1,0 +1,25 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Shared per-build audit body. Used by index.jelly (classic sidepanel) and by
+  InteractiveInputRunTab/index.jelly (l:run-subpage).
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
+  <h1>Interactive Input</h1>
+  <p class="ii-page-sub">Audit of human-in-the-loop questions for
+    <strong>${it.run.fullDisplayName}</strong>.</p>
+  <div class="interactive-input-widget"
+       data-ii-audit="build"
+       data-root-url="${rootURL}"
+       data-job="${it.jobFullName}"
+       data-build="${it.buildNumber}"
+       data-scope="build"
+       data-poll-seconds="${it.pollingIntervalSeconds}"
+       data-rich-modal="${it.richModalEnabled}"/>
+  <st:adjunct includes="io.jenkins.plugins.interactiveinput.bell"/>
+</j:jelly>

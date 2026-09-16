@@ -38,13 +38,14 @@ and reproducible.
 | Parent POM | `org.jenkins-ci.plugins:plugin` **6.2211.v27f680c93c53** | Jenkins plugin conventions |
 | Plugin BOM | `io.jenkins.tools.bom:bom-2.568.x` **7002.v028a_3607ddc8** | dependency alignment |
 | `maven-hpi-plugin` | **3.1814.v77d15159f9b_d** (from parent POM) | HPI packaging |
-| Jenkins core (target) | **2.568.1** | `provided` platform |
+| Jenkins core (target) | **2.568.3** | `provided` platform |
 
 ---
 
 ## 3. Direct runtime dependencies
 
 These are declared in `pom.xml`. Versions marked *(BOM)* are governed by `bom-2.568.x`.
+`org.jenkinsci.Symbol` comes in transitively from Pipeline (`structs` is not a direct dependency).
 
 | Artifact | Version | Scope | License | Why it's here |
 |---|---|---|---|---|
@@ -54,7 +55,6 @@ These are declared in `pom.xml`. Versions marked *(BOM)* are governed by `bom-2.
 | `org.jenkins-ci.plugins.workflow:workflow-support` | 1015.v785e5a_b_b_8b_22 *(BOM)* | compile | MIT | `AbstractStepExecutionImpl` durable base. |
 | `org.jenkins-ci.plugins.workflow:workflow-durable-task-step` | 1479.v56e587f413a_7 *(BOM)* | compile | MIT | Durable-step foundation (survives restart). |
 | `org.jenkins-ci.plugins:pipeline-input-step` | 560.v56198a_642157 *(BOM)* | compile | MIT | **Hard requirement** — modal surface + `input` bridge target. |
-| `org.jenkins-ci.plugins:structs` | 362.va_b_695ef4fdf9 *(BOM)* | compile | MIT | `@DataBoundConstructor` describable binding. |
 | `org.jenkins-ci.plugins:script-security` | 1412.v7737b_3405f86 *(BOM)* | compile | MIT | Transitive of input-step; sandbox integration. |
 | `io.jenkins.plugins:ionicons-api` | 94.vcc3065403257 *(BOM)* | compile | MIT | Theme-aware notification icons (bell / badge / sidebar). |
 | `io.jenkins:configuration-as-code` | 2100.vb_fd699d2a_09c *(BOM)* | compile *(optional)* | MIT | JCasC support — **optional** at runtime. |
@@ -90,14 +90,14 @@ plugin (or Jenkins core) per Jenkins' plugin classloading model — **none are b
 
 ---
 
-## 5. Provided platform (Jenkins core 2.568.1 — not bundled)
+## 5. Provided platform (Jenkins core 2.568.3 — not bundled)
 
 The plugin compiles against but does **not** ship these; the controller provides them at runtime.
 Selected highlights:
 
 | Artifact | Version | License |
 |---|---|---|
-| `org.jenkins-ci.main:jenkins-core` | 2.568.1 | MIT |
+| `org.jenkins-ci.main:jenkins-core` | 2.568.3 | MIT |
 | `org.jenkins-ci.main:remoting` | 3355.v388858a_47b_33 | MIT |
 | `org.kohsuke.stapler:stapler` | 2088.v915606dc8e86 | BSD-3-Clause |
 | `com.thoughtworks.xstream:xstream` | 1.4.21 | BSD-3-Clause |
@@ -117,7 +117,7 @@ Used to compile/run the JUnit 5 suite; excluded from the HPI.
 | Artifact | Version | License | Purpose |
 |---|---|---|---|
 | `org.jenkins-ci.main:jenkins-test-harness` | 2573.vd91b_8a_43e019 | MIT | `JenkinsRule` integration tests |
-| `org.jenkins-ci.main:jenkins-war` | 2.568.1 | MIT | boots a real controller for `JenkinsRule` |
+| `org.jenkins-ci.main:jenkins-war` | 2.568.3 | MIT | boots a real controller for `JenkinsRule` |
 | `org.junit.jupiter:junit-jupiter` | 6.1.2 | EPL-2.0 | JUnit 5 engine |
 | `org.junit.vintage:junit-vintage-engine` | 6.1.2 | EPL-2.0 | runs harness' JUnit 4 helpers under the JUnit 5 launcher |
 | `org.jenkins-ci.plugins.workflow:workflow-cps` | 4350.vcc65d4958821 | MIT | author `CpsFlowDefinition` scripts in tests only |

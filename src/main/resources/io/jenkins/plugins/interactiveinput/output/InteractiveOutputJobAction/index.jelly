@@ -25,7 +25,7 @@
 
         <j:choose>
           <j:when test="${!it.hasAnyOutput}">
-            <div class="io-empty">No output has been published for this job yet. Call the
+            <div class="jenkins-alert jenkins-alert-info">No output has been published for this job yet. Call the
               <code>interactiveOutput</code> step in a build to populate this page.</div>
           </j:when>
           <j:otherwise>

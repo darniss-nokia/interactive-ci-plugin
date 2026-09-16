@@ -1,0 +1,18 @@
+<?jelly escape-by-default='true'?>
+<!--
+ © 2026 Nokia
+ Licensed under the MIT License
+ SPDX-License-Identifier: MIT
+-->
+
+<!--
+  Full Interactive Output tab page for the experimental run UI. Core's l:run-subpage keeps the build
+  title, tabs and actions; the report table is the same fragment the classic sidepanel action uses.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
+  <l:run-subpage>
+    <j:if test="${it.buildAction != null}">
+      <st:include page="content.jelly" it="${it.buildAction}"/>
+    </j:if>
+  </l:run-subpage>
+</j:jelly>
