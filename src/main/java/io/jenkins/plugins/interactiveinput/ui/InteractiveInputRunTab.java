@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jenkins.management.Badge;
 import jenkins.model.Tab;
 import jenkins.model.TransientActionFactory;
 
@@ -33,16 +34,17 @@ import jenkins.model.TransientActionFactory;
  * scoping of the classic row. Live reveal/hide is handled by the global bell + auto-open dialog; this
  * server-rendered card is the in-page attention surface.
  *
- * <p>The tab uses a distinct URL so it never collides with {@link InteractiveInputRunAction}'s route.
- * {@code index.jelly} renders the audit view inside {@code l:run-subpage} so a tab click stays on the
- * experimental build chrome instead of redirecting to the classic sidepanel action.
+ * <p>The tab's {@link #getUrlName()} matches {@link InteractiveInputRunAction} so the experimental
+ * tab bar stays on the same URL as the sidepanel action. This tab is widget-only: the action's
+ * {@code index.jelly} ({@code l:run-subpage}) serves the page. {@link #getBadge()} supplies the
+ * pending count on the tab bar.
  */
 public class InteractiveInputRunTab extends Tab {
 
     private static final Logger LOGGER = Logger.getLogger(InteractiveInputRunTab.class.getName());
 
-    /** Distinct URL segment (does not collide with {@link InteractiveInputRunAction#URL_NAME}). */
-    public static final String URL_NAME = "interactive-input-overview";
+    /** Same URL segment as {@link InteractiveInputRunAction} so the tab bar stays on the action page. */
+    public static final String URL_NAME = InteractiveInputRunAction.URL_NAME;
 
     public InteractiveInputRunTab(@NonNull Run<?, ?> run) {
         super(run);
@@ -78,6 +80,18 @@ public class InteractiveInputRunTab extends Tab {
         }
     }
 
+    /**
+     * @return WAITING questions on this build the current viewer should act on (0 on any store error).
+     */
+    public int getPendingCount() {
+        try {
+            return QuestionStore.get().countNotificationsForBuild(getJobFullName(), getBuildNumber());
+        } catch (RuntimeException e) {
+            LOGGER.log(Level.FINE, e, () -> "could not count pending questions for " + getRun());
+            return 0;
+        }
+    }
+
     public int getPollingIntervalSeconds() {
         return InteractiveInputGlobalConfig.pollingIntervalSecondsOrDefault();
     }
@@ -106,20 +120,23 @@ public class InteractiveInputRunTab extends Tab {
     }
 
     /**
-     * @return a view of this build's audit action so {@code index.jelly} can reuse
-     *     {@code InteractiveInputRunAction/content.jelly} inside {@code l:run-subpage}.
+     * @return a numeric DANGER badge while this build is waiting for the current viewer; {@code null}
+     *     at zero. Core shows this on the experimental tab bar.
      */
-    @NonNull
-    public InteractiveInputRunAction getInputAction() {
-        return new InteractiveInputRunAction(getRun());
+    @Override
+    @CheckForNull
+    public Badge getBadge() {
+        return PendingCountBadge.of(getPendingCount());
     }
 
     /**
      * Attaches the tab to builds of jobs that opted into the run-page attention indicator (same gate as
      * the classic row). Visibility is then decided by {@link #getIconFileName()} (experimental layout +
-     * waiting), so the classic layout and non-waiting builds are unaffected.
+     * waiting), so the classic layout and non-waiting builds are unaffected. {@code ordinal = -1} so
+     * {@link InteractiveInputRunAction.Factory} (default ordinal) wins Stapler's first-{@code urlName}
+     * match and serves the page.
      */
-    @Extension
+    @Extension(ordinal = -1)
     public static class Factory extends TransientActionFactory<Run> {
 
         @Override

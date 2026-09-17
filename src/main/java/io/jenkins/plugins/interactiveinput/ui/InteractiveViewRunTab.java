@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jenkins.management.Badge;
 import jenkins.model.Tab;
 import jenkins.model.TransientActionFactory;
 
@@ -36,16 +37,17 @@ import jenkins.model.TransientActionFactory;
  * {@code getRunTabs()} filters out null-icon tabs), so the classic layout is untouched and the persisted
  * {@link InteractiveViewRunAction} keeps serving its own sidebar link / overflow entry there.
  *
- * <p>The tab uses a distinct URL so it never collides with {@link InteractiveViewRunAction}'s route.
- * {@code index.jelly} renders the review editor inside {@code l:run-subpage} so a tab click stays on the
- * experimental build chrome instead of redirecting to the classic sidepanel action.
+ * <p>The tab's {@link #getUrlName()} matches {@link InteractiveViewRunAction} so the experimental tab
+ * bar stays on the same URL as the sidepanel action. This tab is widget-only: the action's
+ * {@code index.jelly} ({@code l:run-subpage}) serves the page. {@link #getBadge()} supplies the open
+ * review count on the tab bar.
  */
 public class InteractiveViewRunTab extends Tab {
 
     private static final Logger LOGGER = Logger.getLogger(InteractiveViewRunTab.class.getName());
 
-    /** Distinct URL segment (does not collide with {@link InteractiveViewRunAction#URL_NAME}). */
-    public static final String URL_NAME = "interactive-view-overview";
+    /** Same URL segment as {@link InteractiveViewRunAction} so the tab bar stays on the action page. */
+    public static final String URL_NAME = InteractiveViewRunAction.URL_NAME;
 
     public InteractiveViewRunTab(@NonNull Run<?, ?> run) {
         super(run);
@@ -178,20 +180,36 @@ public class InteractiveViewRunTab extends Tab {
     }
 
     /**
-     * @return a view of this build's review action so {@code index.jelly} can reuse
-     *     {@code InteractiveViewRunAction/content.jelly} inside {@code l:run-subpage}.
+     * @return OPEN, notify-enabled reviews on this build the current viewer should act on (0 on any
+     *     store error).
      */
-    @NonNull
-    public InteractiveViewRunAction getViewAction() {
-        return new InteractiveViewRunAction(getRun());
+    public int getPendingCount() {
+        try {
+            return ViewStore.get().countNotificationsForBuild(getJobFullName(), getBuildNumber());
+        } catch (RuntimeException e) {
+            LOGGER.log(Level.FINE, e, () -> "could not count open reviews for " + getRun());
+            return 0;
+        }
+    }
+
+    /**
+     * @return a numeric DANGER badge while this build has open reviews the current viewer should act
+     *     on; {@code null} at zero. Core shows this on the experimental tab bar.
+     */
+    @Override
+    @CheckForNull
+    public Badge getBadge() {
+        return PendingCountBadge.of(getPendingCount());
     }
 
     /**
      * Attaches the tab to any build that has review documents (same gate as {@link InteractiveViewRunAction}).
      * Attachment is layout-independent (cheap, deterministic); actual visibility is gated by
-     * {@link #getIconFileName()} so nothing shows in the classic layout.
+     * {@link #getIconFileName()} so nothing shows in the classic layout. {@code ordinal = -1} so
+     * {@link InteractiveViewRunAction.Factory} wins Stapler's first-{@code urlName} match and serves
+     * the page.
      */
-    @Extension
+    @Extension(ordinal = -1)
     public static class Factory extends TransientActionFactory<Run> {
 
         @Override

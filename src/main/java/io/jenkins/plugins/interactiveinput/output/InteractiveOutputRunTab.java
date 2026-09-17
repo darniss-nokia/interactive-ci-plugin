@@ -31,16 +31,16 @@ import jenkins.model.TransientActionFactory;
  * otherwise, and {@code getRunTabs()} filters out null-icon tabs), so the classic layout is untouched
  * and the persisted action keeps serving its own sidebar link / overflow entry there.
  *
- * <p>The tab uses a distinct URL so it never collides with {@link InteractiveOutputBuildAction}'s
- * route. {@code index.jelly} renders the report table inside {@code l:run-subpage} so a tab click stays
- * on the experimental build chrome instead of redirecting to the classic sidepanel action.
+ * <p>The tab's {@link #getUrlName()} matches {@link InteractiveOutputBuildAction} so the experimental
+ * tab bar stays on the same URL as the sidepanel action. This tab is widget-only: the persisted
+ * action's {@code index.jelly} ({@code l:run-subpage}) serves the page.
  */
 public class InteractiveOutputRunTab extends Tab {
 
     private static final Logger LOGGER = Logger.getLogger(InteractiveOutputRunTab.class.getName());
 
-    /** Distinct URL segment (does not collide with {@link InteractiveOutputBuildAction#URL_NAME}). */
-    public static final String URL_NAME = "interactive-output-overview";
+    /** Same URL segment as {@link InteractiveOutputBuildAction} so the tab bar stays on the action page. */
+    public static final String URL_NAME = InteractiveOutputBuildAction.URL_NAME;
 
     public InteractiveOutputRunTab(@NonNull Run<?, ?> run) {
         super(run);
@@ -107,20 +107,13 @@ public class InteractiveOutputRunTab extends Tab {
     }
 
     /**
-     * @return the persisted build action so {@code index.jelly} can reuse
-     *     {@code InteractiveOutputBuildAction/content.jelly} inside {@code l:run-subpage}.
-     */
-    @CheckForNull
-    public InteractiveOutputBuildAction getBuildAction() {
-        return action();
-    }
-
-    /**
      * Attaches the tab to any build carrying a visible {@link InteractiveOutputBuildAction}. Attachment
      * is layout-independent (cheap, deterministic); actual visibility is gated by
-     * {@link #getIconFileName()} so nothing shows in the classic layout.
+     * {@link #getIconFileName()} so nothing shows in the classic layout. {@code ordinal = -1} so the
+     * persisted {@link InteractiveOutputBuildAction} wins Stapler's first-{@code urlName} match and
+     * serves the page.
      */
-    @Extension
+    @Extension(ordinal = -1)
     public static class Factory extends TransientActionFactory<Run> {
 
         @Override

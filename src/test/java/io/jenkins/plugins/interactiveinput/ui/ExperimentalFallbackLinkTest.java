@@ -7,6 +7,7 @@ package io.jenkins.plugins.interactiveinput.ui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hudson.model.FreeStyleProject;
 import io.jenkins.plugins.interactiveinput.model.Choice;
@@ -39,9 +40,10 @@ import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
  *       link) for either the view or the output action;</li>
  *   <li>#4 — each job action still exposes an icon + stable URL once the job has something to show, so core
  *       surfaces it (classic sidebar and experimental overflow menu alike);</li>
- *   <li>#5 — {@link InteractiveViewJobAction#getDisplayName()} and
- *       {@link InteractiveInputJobAction#getDisplayName()} both carry the pending {@code (N)} count, which is
- *       exactly what the experimental overflow menu renders.</li>
+ *   <li>#5 — {@link InteractiveViewJobAction#getBadge()} and
+ *       {@link InteractiveInputJobAction#getBadge()} carry the pending count, which is what core's
+ *       sidepanel and experimental overflow/tab chrome render. {@code getDisplayName()} stays the
+ *       plain label.</li>
  * </ul>
  */
 @WithJenkins
@@ -95,6 +97,17 @@ class ExperimentalFallbackLinkTest {
         ViewStore.get().submit(review(p.getFullName()), "hello");
         assertNotNull(action.getIconFileName(), "icon appears once a review exists — core surfaces the action");
         assertEquals("interactive-view", action.getUrlName());
+
+        try (JenkinsRule.WebClient wc = j.createWebClient()) {
+            wc.getOptions().setJavaScriptEnabled(false);
+            wc.getOptions().setThrowExceptionOnFailingStatusCode(false);
+            String html = wc.goTo(p.getUrl() + "interactive-view/")
+                    .getWebResponse()
+                    .getContentAsString();
+            assertTrue(
+                    html.contains("data-ii-tasklink=\"view-job\""),
+                    "the Interactive View job page must carry the live-count controller");
+        }
     }
 
     @Test
@@ -103,14 +116,17 @@ class ExperimentalFallbackLinkTest {
         InteractiveViewJobAction action = p.getAction(InteractiveViewJobAction.class);
         assertNotNull(action);
 
-        // Nothing pending → plain label (no "(0)").
+        // Nothing pending → plain label, no badge.
         assertEquals(0, action.getPendingCount());
         assertEquals("Interactive View", action.getDisplayName());
+        assertNull(action.getBadge());
 
-        // One OPEN, notify-enabled review → the count is suffixed so the experimental overflow menu shows it.
+        // One OPEN, notify-enabled review → Badgeable supplies the count; the label stays plain.
         ViewStore.get().submit(review(p.getFullName()), "hello");
         assertEquals(1, action.getPendingCount());
-        assertEquals("Interactive View (1)", action.getDisplayName());
+        assertEquals("Interactive View", action.getDisplayName());
+        assertEquals("1", action.getBadge().getText());
+        assertEquals("danger", action.getBadge().getSeverity());
     }
 
     @Test
@@ -119,11 +135,12 @@ class ExperimentalFallbackLinkTest {
         InteractiveInputJobAction action = p.getAction(InteractiveInputJobAction.class);
         assertNotNull(action);
 
-        // Nothing pending → plain label (no "(0)").
+        // Nothing pending → plain label, no badge.
         assertEquals(0, action.getPendingCount());
         assertEquals("Interactive Input", action.getDisplayName());
+        assertNull(action.getBadge());
 
-        // One pending question → the count is suffixed so the experimental overflow menu shows it,
+        // One pending question → Badgeable supplies the count; the label stays plain,
         // consistent with Interactive View.
         QuestionStore.get()
                 .submit(new Question(
@@ -140,7 +157,9 @@ class ExperimentalFallbackLinkTest {
                         System.currentTimeMillis(),
                         false));
         assertEquals(1, action.getPendingCount());
-        assertEquals("Interactive Input (1)", action.getDisplayName());
+        assertEquals("Interactive Input", action.getDisplayName());
+        assertEquals("1", action.getBadge().getText());
+        assertEquals("danger", action.getBadge().getSeverity());
     }
 
     private static ReviewDocument review(String jobFullName) {

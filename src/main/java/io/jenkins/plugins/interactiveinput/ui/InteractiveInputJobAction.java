@@ -16,6 +16,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jenkins.management.Badge;
+import jenkins.model.Badgeable;
 import jenkins.model.TransientActionFactory;
 
 /**
@@ -30,17 +32,16 @@ import jenkins.model.TransientActionFactory;
  *       self-hides when nothing is pending.</li>
  *   <li>{@code index.jelly} — the action's own page (reached via the left-sidebar link that appears
  *       only when there are pending questions, driven by {@link #getIconFileName()}). While showing,
- *       its pending count is kept live client-side by the always-present {@code data-ii-tasklink}
- *       controller in {@code jobMain.jelly} (see {@code bell.js}) — rendered as a native
- *       {@code jenkins-badge} pill next to the label rather than "{@code (N)}" text — so it no longer
- *       goes stale until a page reload.</li>
+ *       {@link #getBadge()} supplies the pending count to core's sidepanel / overflow menu, and the
+ *       always-present {@code data-ii-tasklink} controller ({@code jobMain.jelly} / the action page /
+ *       {@code bell.js}) keeps that pill live so the number does not go stale until a page reload.</li>
  * </ul>
  *
  * <p>Both surfaces mount the shared JS widget, which polls the scoped REST endpoint
  * ({@code /interactive-input/api/v1/questions?job=<fullName>}) and opens the shared modal. All
  * permission and existence checks live in the store/REST layer; this action only exposes metadata.
  */
-public class InteractiveInputJobAction implements Action {
+public class InteractiveInputJobAction implements Action, Badgeable {
 
     private static final Logger LOGGER = Logger.getLogger(InteractiveInputJobAction.class.getName());
 
@@ -84,6 +85,14 @@ public class InteractiveInputJobAction implements Action {
         return job;
     }
 
+    /**
+     * @return the owning job. Required by core's {@code l:job-subpage} ({@code it.object}).
+     */
+    @NonNull
+    public Job<?, ?> getObject() {
+        return job;
+    }
+
     @NonNull
     public String getJobFullName() {
         return job.getFullName();
@@ -112,7 +121,7 @@ public class InteractiveInputJobAction implements Action {
      *     feature is on and this job has pending questions (so it stays a per-project indicator, not
      *     permanent clutter on every job). While it is showing, the always-present
      *     {@code data-ii-tasklink} controller (see {@code jobMain.jelly} / {@code bell.js}) keeps its
-     *     "{@code (N)}" count live and hides the row when the count reaches zero, so the number no
+     *     pending-count badge live and hides the row when the count reaches zero, so the number no
      *     longer goes stale until a full page reload.
      */
     @Override
@@ -122,18 +131,25 @@ public class InteractiveInputJobAction implements Action {
     }
 
     /**
-     * @return "Interactive Input", suffixed with the pending count {@code (N)} when there is at least one
-     *     pending question. This surfaces the count in the experimental "more actions" overflow menu, which
-     *     is server-rendered from the display name (core exposes no styled-badge slot there). In the classic
-     *     sidebar {@code bell.js} ({@code mountTaskLink}) resets the label to plain "Interactive Input" and
-     *     shows the count as a live {@code jenkins-badge} pill instead, so there is no double count. Mirrors
-     *     {@link InteractiveViewJobAction#getDisplayName()}.
+     * @return the stable sidebar / overflow label. The pending count is {@link #getBadge()}, not a
+     *     {@code (N)} suffix, so the classic sidepanel does not flicker from {@code Interactive Input (N)}
+     *     to a pill.
      */
     @Override
     @NonNull
     public String getDisplayName() {
-        int n = getPendingCount();
-        return n > 0 ? "Interactive Input (" + n + ")" : "Interactive Input";
+        return "Interactive Input";
+    }
+
+    /**
+     * @return a numeric DANGER badge while this job has pending questions the current viewer should act
+     *     on; {@code null} at zero. Core renders this on the sidepanel ({@code task-icon-badge}) and in
+     *     the experimental overflow / tab chrome.
+     */
+    @Override
+    @CheckForNull
+    public Badge getBadge() {
+        return PendingCountBadge.of(getPendingCount());
     }
 
     @Override

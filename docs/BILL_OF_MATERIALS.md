@@ -45,7 +45,7 @@ and reproducible.
 ## 3. Direct runtime dependencies
 
 These are declared in `pom.xml`. Versions marked *(BOM)* are governed by `bom-2.568.x`.
-`org.jenkinsci.Symbol` comes in transitively from Pipeline (`structs` is not a direct dependency).
+`org.jenkinsci.Symbol` is provided by Jenkins core (`structs` is not a direct dependency).
 
 | Artifact | Version | Scope | License | Why it's here |
 |---|---|---|---|---|

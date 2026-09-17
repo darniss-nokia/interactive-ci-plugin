@@ -12,13 +12,17 @@
   (viewer.js, mounted on [data-iv-table-filter]) narrows by text, "Notified" and "Needs approval".
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:i="jelly:fmt">
-  <l:layout title="Interactive View - ${it.job.fullDisplayName}">
-    <l:side-panel>
-      <st:include it="${it.job}" page="sidepanel.jelly" optional="true"/>
-    </l:side-panel>
-    <l:main-panel>
+  <l:job-subpage>
+      <st:adjunct includes="io.jenkins.plugins.interactiveinput.bell"/>
       <st:adjunct includes="io.jenkins.plugins.interactiveinput.viewer"/>
-      <h1>Interactive View</h1>
+      <span class="ii-tasklink-controller"
+            style="display:none"
+            data-ii-tasklink="view-job"
+            data-root-url="${rootURL}"
+            data-job="${it.jobFullName}"
+            data-poll-seconds="${it.pollingIntervalSeconds}"
+            data-initial-count="${it.pendingCount}"/>
+      <l:app-bar title="Interactive View"/>
       <p class="iv-page-sub">Reviews published for <strong>${it.job.fullDisplayName}</strong>.</p>
       <j:choose>
         <j:when test="${empty(it.reviews)}">
@@ -85,6 +89,5 @@
           </table>
         </j:otherwise>
       </j:choose>
-    </l:main-panel>
-  </l:layout>
+  </l:job-subpage>
 </j:jelly>

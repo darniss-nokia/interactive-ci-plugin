@@ -6,11 +6,10 @@
 -->
 
 <!--
-  Shared per-build audit body. Used by index.jelly (classic sidepanel) and by
-  InteractiveInputRunTab/index.jelly (l:run-subpage).
+  Shared per-build audit body, included by index.jelly inside l:run-subpage.
 -->
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
-  <h1>Interactive Input</h1>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
+  <l:app-bar title="Interactive Input"/>
   <p class="ii-page-sub">Audit of human-in-the-loop questions for
     <strong>${it.run.fullDisplayName}</strong>.</p>
   <div class="interactive-input-widget"

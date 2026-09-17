@@ -60,6 +60,14 @@ public class InteractiveOutputJobAction implements Action {
         return job;
     }
 
+    /**
+     * @return the owning job. Required by core's {@code l:job-subpage} ({@code it.object}).
+     */
+    @NonNull
+    public Job<?, ?> getObject() {
+        return job;
+    }
+
     @NonNull
     public String getJobFullName() {
         return job.getFullName();

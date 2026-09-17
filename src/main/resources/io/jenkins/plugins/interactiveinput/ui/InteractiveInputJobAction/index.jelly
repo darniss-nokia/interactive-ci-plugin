@@ -8,25 +8,29 @@
 <!--
   The action's own page (reached from the job's left-sidebar link). Lists this job's pending
   interactive-input questions via the shared JS widget; each opens the shared modal to answer.
+  l:job-subpage keeps core's job chrome; the hidden tasklink controller keeps the sidebar badge live
+  because jobMain.jelly is not included on this URL.
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
-  <l:layout title="Interactive Input - ${it.job.fullDisplayName}">
-    <l:side-panel>
-      <st:include it="${it.job}" page="sidepanel.jelly" optional="true"/>
-    </l:side-panel>
-    <l:main-panel>
-      <h1>Interactive Input</h1>
-      <p class="ii-page-sub">Pending human-in-the-loop questions for
-        <strong>${it.job.fullDisplayName}</strong>.</p>
-      <div class="interactive-input-widget"
-           data-ii-widget="job"
-           data-root-url="${rootURL}"
-           data-job="${it.jobFullName}"
-           data-scope="job"
-           data-poll-seconds="${it.pollingIntervalSeconds}"
-           data-rich-modal="${it.richModalEnabled}"
-           data-initial-count="${it.pendingCount}"/>
-      <st:adjunct includes="io.jenkins.plugins.interactiveinput.bell"/>
-    </l:main-panel>
-  </l:layout>
+  <l:job-subpage>
+    <st:adjunct includes="io.jenkins.plugins.interactiveinput.bell"/>
+    <span class="ii-tasklink-controller"
+          style="display:none"
+          data-ii-tasklink="job"
+          data-root-url="${rootURL}"
+          data-job="${it.jobFullName}"
+          data-poll-seconds="${it.pollingIntervalSeconds}"
+          data-initial-count="${it.pendingCount}"/>
+    <l:app-bar title="Interactive Input"/>
+    <p class="ii-page-sub">Pending human-in-the-loop questions for
+      <strong>${it.job.fullDisplayName}</strong>.</p>
+    <div class="interactive-input-widget"
+         data-ii-widget="job"
+         data-root-url="${rootURL}"
+         data-job="${it.jobFullName}"
+         data-scope="job"
+         data-poll-seconds="${it.pollingIntervalSeconds}"
+         data-rich-modal="${it.richModalEnabled}"
+         data-initial-count="${it.pendingCount}"/>
+  </l:job-subpage>
 </j:jelly>

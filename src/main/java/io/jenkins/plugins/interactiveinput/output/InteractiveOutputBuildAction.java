@@ -66,6 +66,14 @@ public class InteractiveOutputBuildAction implements RunAction2 {
         return run;
     }
 
+    /**
+     * @return the owning run. Required by core's {@code l:run-subpage} ({@code it.object}).
+     */
+    @CheckForNull
+    public Run<?, ?> getObject() {
+        return run;
+    }
+
     /** @return the theme-aware symbol class for the output surfaces (for {@code <l:icon src=..>}). */
     @NonNull
     public String getIconClassName() {

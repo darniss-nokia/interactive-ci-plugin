@@ -6,17 +6,12 @@
 -->
 
 <!--
-  Per-build audit view (reached from the build's left-sidebar link and the anchored console link).
-  The shared JS widget fetches this build's questions (including settled ones, with the recorded
-  answer) and renders what was asked (prompt + context + choices) and what was chosen (answer + who).
+  Per-build audit view (reached from the build's left-sidebar link, the experimental tab bar, and the
+  anchored console link). l:run-subpage keeps the experimental build chrome so a tab click and a
+  sidebar click land on the same page.
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
-  <l:layout title="Interactive Input - ${it.run.fullDisplayName}">
-    <l:side-panel>
-      <st:include it="${it.run}" page="sidepanel.jelly" optional="true"/>
-    </l:side-panel>
-    <l:main-panel>
-      <st:include page="content.jelly"/>
-    </l:main-panel>
-  </l:layout>
+  <l:run-subpage>
+    <st:include page="content.jelly"/>
+  </l:run-subpage>
 </j:jelly>

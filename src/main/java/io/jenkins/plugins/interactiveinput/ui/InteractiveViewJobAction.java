@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jenkins.management.Badge;
+import jenkins.model.Badgeable;
 import jenkins.model.TransientActionFactory;
 
 /**
@@ -30,7 +32,7 @@ import jenkins.model.TransientActionFactory;
  * while the live count badge still reflects only open notifications the viewer should act on. Its
  * {@code index.jelly} lists the job's reviews across builds, each linking to that build's review editor.
  */
-public class InteractiveViewJobAction implements Action {
+public class InteractiveViewJobAction implements Action, Badgeable {
 
     private static final Logger LOGGER = Logger.getLogger(InteractiveViewJobAction.class.getName());
 
@@ -50,6 +52,14 @@ public class InteractiveViewJobAction implements Action {
 
     @NonNull
     public Job<?, ?> getJob() {
+        return job;
+    }
+
+    /**
+     * @return the owning job. Required by core's {@code l:job-subpage} ({@code it.object}).
+     */
+    @NonNull
+    public Job<?, ?> getObject() {
         return job;
     }
 
@@ -136,17 +146,25 @@ public class InteractiveViewJobAction implements Action {
     }
 
     /**
-     * @return "Interactive View", suffixed with the pending count {@code (N)} when there is at least one
-     *     open notification. This surfaces the count in the experimental "more actions" overflow menu
-     *     (which is server-rendered from the display name). In the classic sidebar {@code bell.js} resets
-     *     the label to plain "Interactive View" and shows the count as a live pill instead, so there is no
-     *     double count.
+     * @return the stable sidebar / overflow label. The pending count is {@link #getBadge()}, not a
+     *     {@code (N)} suffix, so the classic sidepanel does not flicker from {@code Interactive View (N)}
+     *     to a pill.
      */
     @Override
     @NonNull
     public String getDisplayName() {
-        int n = getPendingCount();
-        return n > 0 ? "Interactive View (" + n + ")" : "Interactive View";
+        return "Interactive View";
+    }
+
+    /**
+     * @return a numeric DANGER badge while this job has open reviews the current viewer should act on;
+     *     {@code null} at zero. Core renders this on the sidepanel ({@code task-icon-badge}) and in the
+     *     experimental overflow / tab chrome.
+     */
+    @Override
+    @CheckForNull
+    public Badge getBadge() {
+        return PendingCountBadge.of(getPendingCount());
     }
 
     @Override

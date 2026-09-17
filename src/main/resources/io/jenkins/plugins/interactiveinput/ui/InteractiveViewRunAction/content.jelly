@@ -6,8 +6,7 @@
 -->
 
 <!--
-  Shared review-editor body. Used by index.jelly (classic sidepanel) and by
-  InteractiveViewRunTab/index.jelly (l:run-subpage). viewer.js reads ?doc=<id>.
+  Shared review-editor body. Included by index.jelly inside l:run-subpage. viewer.js reads ?doc=<id>.
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
   <st:adjunct includes="io.jenkins.plugins.prism"/>

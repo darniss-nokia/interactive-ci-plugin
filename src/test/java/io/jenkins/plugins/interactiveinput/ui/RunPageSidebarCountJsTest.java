@@ -15,6 +15,7 @@ import io.jenkins.plugins.interactiveinput.model.Question;
 import io.jenkins.plugins.interactiveinput.store.QuestionStore;
 import java.util.List;
 import org.htmlunit.html.HtmlAnchor;
+import org.htmlunit.html.HtmlElement;
 import org.htmlunit.html.HtmlPage;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -67,8 +68,11 @@ class RunPageSidebarCountJsTest {
             assertEquals(1, links.size(), "exactly one run-page sidebar link — the client must not clone a duplicate");
             HtmlAnchor link = (HtmlAnchor) links.get(0);
             assertTrue(link.asNormalizedText().contains("Interactive Input"), "keeps the 'Interactive Input' label");
-            var badge = link.querySelector(".ii-task-badge");
+            HtmlElement badge = sidebarBadge(link);
             assertNotNull(badge, "the run page's side link must gain a pending-count badge (fix #1)");
+            assertTrue(
+                    badge.getAttribute("class").contains("task-icon-badge"),
+                    "the pill sits on the right of the task row via task-icon-badge");
             assertEquals("1", badge.getTextContent().trim(), "the badge shows this build's pending count");
 
             // Answer it and fire the event the modals dispatch: the badge clears, but — unlike the job
@@ -83,10 +87,24 @@ class RunPageSidebarCountJsTest {
             assertTrue(
                     auditLink.isDisplayed(),
                     "the per-build AUDIT link stays visible after the question settles (review past inputs)");
-            var settledBadge = auditLink.querySelector(".ii-task-badge");
+            HtmlElement settledBadge = sidebarBadge(auditLink);
             assertTrue(
                     settledBadge == null || !settledBadge.isDisplayed(),
                     "the pending-count badge is removed once nothing is waiting");
         }
+    }
+
+    /** The live pill is a sibling of the {@code <a>} on the {@code .task} row, not a child of the link. */
+    private static HtmlElement sidebarBadge(HtmlAnchor link) {
+        HtmlElement row = link.getFirstByXPath(
+                "./ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' task ')][1]");
+        if (row == null) {
+            row = (HtmlElement) link.getParentNode();
+        }
+        HtmlElement badge = row.querySelector(".ii-task-badge");
+        if (badge == null) {
+            badge = row.querySelector(".task-icon-badge");
+        }
+        return badge;
     }
 }

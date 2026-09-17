@@ -15,6 +15,7 @@ import io.jenkins.plugins.interactiveinput.model.Question;
 import io.jenkins.plugins.interactiveinput.store.QuestionStore;
 import java.util.List;
 import org.htmlunit.html.HtmlAnchor;
+import org.htmlunit.html.HtmlElement;
 import org.htmlunit.html.HtmlPage;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -75,8 +76,14 @@ class SidebarLiveUpdateJsTest {
             assertTrue(
                     link.asNormalizedText().contains("Interactive Input"),
                     "the sidebar keeps the 'Interactive Input' label");
-            var badge = link.querySelector(".ii-task-badge");
+            assertFalse(
+                    link.asNormalizedText().contains("Interactive Input (1)"),
+                    "the count is a task-icon-badge, not a (N) suffix on the label");
+            HtmlElement badge = sidebarBadge(link);
             assertNotNull(badge, "the pending count renders as a native jenkins-badge pill, not '(N)' text");
+            assertTrue(
+                    badge.getAttribute("class").contains("task-icon-badge"),
+                    "the pill sits on the right of the task row via task-icon-badge");
             assertEquals("1", badge.getTextContent().trim(), "the badge shows the pending count");
 
             // Answer it and fire the same event the modals dispatch after a successful answer.
@@ -90,5 +97,19 @@ class SidebarLiveUpdateJsTest {
                     ((HtmlAnchor) linksAfter.get(0)).isDisplayed(),
                     "the row hides itself live once nothing is pending — no reload needed");
         }
+    }
+
+    /** The live pill is a sibling of the {@code <a>} on the {@code .task} row, not a child of the link. */
+    private static HtmlElement sidebarBadge(HtmlAnchor link) {
+        HtmlElement row = link.getFirstByXPath(
+                "./ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' task ')][1]");
+        if (row == null) {
+            row = (HtmlElement) link.getParentNode();
+        }
+        HtmlElement badge = row.querySelector(".ii-task-badge");
+        if (badge == null) {
+            badge = row.querySelector(".task-icon-badge");
+        }
+        return badge;
     }
 }

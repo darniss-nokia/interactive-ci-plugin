@@ -18,6 +18,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jenkins.management.Badge;
+import jenkins.model.Badgeable;
 import jenkins.model.TransientActionFactory;
 
 /**
@@ -34,7 +36,7 @@ import jenkins.model.TransientActionFactory;
  * line written by the step. After retention compaction the store no longer holds settled questions,
  * so the audit page shows an empty state and defers to the console line (documented trade-off).
  */
-public class InteractiveInputRunAction implements BuildBadgeAction {
+public class InteractiveInputRunAction implements BuildBadgeAction, Badgeable {
 
     private static final Logger LOGGER = Logger.getLogger(InteractiveInputRunAction.class.getName());
 
@@ -62,6 +64,14 @@ public class InteractiveInputRunAction implements BuildBadgeAction {
         return run;
     }
 
+    /**
+     * @return the owning run. Required by core's {@code l:run-subpage} ({@code it.object}).
+     */
+    @NonNull
+    public Run<?, ?> getObject() {
+        return run;
+    }
+
     @NonNull
     public String getJobFullName() {
         return run.getParent().getFullName();
@@ -81,6 +91,20 @@ public class InteractiveInputRunAction implements BuildBadgeAction {
         } catch (RuntimeException e) {
             LOGGER.log(Level.FINE, e, () -> "could not compute waiting state for " + run);
             return false;
+        }
+    }
+
+    /**
+     * @return WAITING questions on this build the current viewer should act on (0 on any store error),
+     *     honouring the user-scope switch. Surfaces as {@link #getBadge()} on the classic sidebar and
+     *     experimental tab bar.
+     */
+    public int getPendingCount() {
+        try {
+            return QuestionStore.get().countNotificationsForBuild(getJobFullName(), getBuildNumber());
+        } catch (RuntimeException e) {
+            LOGGER.log(Level.FINE, e, () -> "could not count pending questions for " + run);
+            return 0;
         }
     }
 
@@ -120,6 +144,16 @@ public class InteractiveInputRunAction implements BuildBadgeAction {
     @NonNull
     public String getDisplayName() {
         return "Interactive Input";
+    }
+
+    /**
+     * @return a numeric DANGER badge while this build has pending questions the current viewer should
+     *     act on; {@code null} at zero.
+     */
+    @Override
+    @CheckForNull
+    public Badge getBadge() {
+        return PendingCountBadge.of(getPendingCount());
     }
 
     @Override

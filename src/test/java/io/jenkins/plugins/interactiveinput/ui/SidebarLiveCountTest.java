@@ -61,17 +61,24 @@ class SidebarLiveCountTest {
                 false));
 
         // With one pending, the page must carry the always-present live controller AND the server-rendered
-        // sidebar link. The label now carries the "(1)" count (so the same value shows in the experimental
-        // "more actions" overflow menu); with JavaScript disabled bell.js has not run, so the raw server
-        // label is visible here. In the live classic sidebar bell.js resets it to a plain label + a
-        // jenkins-badge pill, so there is no double count.
+        // sidebar link. Badgeable.getBadge() supplies the count (core renders task-icon-badge); the label
+        // stays plain "Interactive Input" so the classic sidepanel does not flicker from "(N)" to a pill.
         String pending = jobPageHtml(j, p);
         assertTrue(pending.contains("data-ii-tasklink=\"job\""), "always-present tasklink controller must render");
         assertTrue(pending.contains("data-job=\"" + JOB + "\""), "controller must be scoped to this job");
         assertTrue(pending.contains("data-initial-count=\"1\""), "controller seeds the live count from the server");
+        assertTrue(pending.contains("Interactive Input"), "server-rendered label is the plain action name");
+        assertFalse(
+                pending.contains("Interactive Input (1)"), "the count must not be suffixed onto the display name");
         assertTrue(
-                pending.contains("Interactive Input (1)"),
-                "server-rendered label carries the count; bell.js resets it to a plain label + pill in the classic sidebar");
+                pending.contains("task-icon-badge"), "core renders Badgeable.getBadge() as task-icon-badge on the row");
+        assertEquals("1", action.getBadge().getText());
+        assertEquals("danger", action.getBadge().getSeverity());
+
+        String actionPage = pageHtml(j, p.getUrl() + "interactive-input/");
+        assertTrue(
+                actionPage.contains("data-ii-tasklink=\"job\""),
+                "the job action page must carry the live-count controller (jobMain.jelly is not included there)");
 
         // Draining the store is exactly what the client poller observes: count -> 0, link hidden. The
         // controller stays in the DOM (seeded at 0) so the poller can re-show it if a new question arrives.
@@ -83,12 +90,17 @@ class SidebarLiveCountTest {
         assertTrue(drained.contains("data-ii-tasklink=\"job\""), "controller stays present at zero for live re-show");
         assertTrue(drained.contains("data-initial-count=\"0\""), "controller reseeds at zero");
         assertFalse(drained.contains("Interactive Input (1)"), "at zero the label carries no count suffix");
+        assertNull(action.getBadge(), "no Badgeable badge at zero");
     }
 
     private static String jobPageHtml(JenkinsRule j, FreeStyleProject p) throws Exception {
+        return pageHtml(j, p.getUrl());
+    }
+
+    private static String pageHtml(JenkinsRule j, String path) throws Exception {
         JenkinsRule.WebClient wc = j.createWebClient();
         wc.getOptions().setJavaScriptEnabled(false); // assert server-rendered hooks, not the browser timer
         wc.getOptions().setThrowExceptionOnFailingStatusCode(false);
-        return wc.goTo(p.getUrl()).getWebResponse().getContentAsString();
+        return wc.goTo(path).getWebResponse().getContentAsString();
     }
 }

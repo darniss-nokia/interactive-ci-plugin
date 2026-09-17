@@ -9,8 +9,10 @@ All notable changes to this project are documented here. The format follows
 ### Changed
 - Plugin BOM aligned to the latest `bom-2.568.x` (`7020.vf38cb_40380d1`) so the hosting checker stays clean.
 - Jenkins core target is **2.568.3** (hosting review).
-- Dropped the direct `structs` plugin dependency; `@Symbol` still comes in via Pipeline (`workflow-step-api` / `pipeline-input-step`).
-- Experimental run tabs (`Interactive Input` / `Interactive View` / `Interactive Output`) now render with core's `l:run-subpage`, so clicking a tab stays on the new build UI instead of redirecting to the classic sidepanel action.
+- Dropped the direct `structs` plugin dependency; `@Symbol` is provided by Jenkins core.
+- Job and run Interactive Input / Interactive View actions implement `Badgeable.getBadge()` for the pending count and no longer put `(N)` in `getDisplayName()`. Live sidebar pills use core's `task-icon-badge` on the `.task` row.
+- Job action pages use `l:job-subpage`; run action pages use `l:run-subpage`. Page titles use `l:app-bar` instead of a raw `h1`.
+- Experimental run tabs share the action URL (`interactive-input` / `interactive-view` / `interactive-output`); the former `*-overview` routes are gone. Tabs are widget-only; Input/View tabs expose `getBadge()` on the tab bar.
 - The notification centre is a primary `RootAction` header button (`#root-action-NotificationBellAction`). `bell.js` only attaches the live pending-count badge, using `jenkins-badge jenkins-!-danger-color`.
 - The empty Interactive Output job page uses a design-library `jenkins-alert` banner.
 

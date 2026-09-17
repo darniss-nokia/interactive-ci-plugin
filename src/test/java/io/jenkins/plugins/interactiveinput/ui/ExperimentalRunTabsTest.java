@@ -81,6 +81,19 @@ class ExperimentalRunTabsTest {
     }
 
     /**
+     * Stapler binds the first {@link hudson.model.Action} whose {@code urlName} matches. The run action
+     * (or persisted output action) must win over the widget-only tab that now shares that URL.
+     */
+    private static hudson.model.Action firstByUrlName(Run<?, ?> run, String urlName) {
+        for (hudson.model.Action a : run.getAllActions()) {
+            if (urlName.equals(a.getUrlName())) {
+                return a;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Hitting a run-tab URL must stay on that tab and render the action content inside
      * {@code l:run-subpage} (experimental build chrome), not redirect to the classic sidepanel action.
      */
@@ -138,9 +151,12 @@ class ExperimentalRunTabsTest {
         assertNotNull(action, "the output build action is present");
         InteractiveOutputRunTab tab = b.getAction(InteractiveOutputRunTab.class);
         assertNotNull(tab, "the native tab is attached whenever the output is visible (layout-independent)");
-        // Distinct URL so the tab's own route never collides with the canonical action route.
-        assertEquals("interactive-output-overview", tab.getUrlName());
+        // Same URL as the action so the experimental tab bar stays on the action page (l:run-subpage).
+        assertEquals("interactive-output", tab.getUrlName());
         assertEquals("interactive-output", action.getUrlName());
+        assertTrue(
+                firstByUrlName(b, InteractiveOutputBuildAction.URL_NAME) instanceof InteractiveOutputBuildAction,
+                "Stapler must bind the persisted output action, not the widget-only tab");
         assertTabRendersInPlace(j, b, InteractiveOutputRunTab.URL_NAME, ".io-page");
 
         // Classic viewer: no native tab, the classic summary row renders, action stays reachable via icon.
@@ -188,7 +204,7 @@ class ExperimentalRunTabsTest {
 
         InteractiveInputRunTab tab = b.getAction(InteractiveInputRunTab.class);
         assertNotNull(tab, "the input tab is attached when the run-page alert property is on");
-        assertEquals("interactive-input-overview", tab.getUrlName());
+        assertEquals("interactive-input", tab.getUrlName());
 
         QuestionStore.get()
                 .submit(new Question(
@@ -206,6 +222,13 @@ class ExperimentalRunTabsTest {
                         false));
         InteractiveInputRunAction runAction = b.getAction(InteractiveInputRunAction.class);
         assertNotNull(runAction, "the run action attaches once the build has a question");
+        assertTrue(
+                firstByUrlName(b, InteractiveInputRunAction.URL_NAME) instanceof InteractiveInputRunAction,
+                "Stapler must bind the run action, not the widget-only tab");
+        assertEquals("1", runAction.getBadge().getText());
+        assertEquals("danger", runAction.getBadge().getSeverity());
+        assertEquals("1", tab.getBadge().getText());
+        assertEquals("Interactive Input", runAction.getDisplayName());
         assertTabRendersInPlace(j, b, InteractiveInputRunTab.URL_NAME, "[data-ii-audit]");
 
         // Classic viewer: no native tab; the classic attention row renders.
@@ -264,8 +287,16 @@ class ExperimentalRunTabsTest {
 
         InteractiveViewRunTab tab = b.getAction(InteractiveViewRunTab.class);
         assertNotNull(tab, "the view tab is attached once the build has a review (layout-independent)");
-        // Distinct URL so the tab's own route never collides with the canonical view action route.
-        assertEquals("interactive-view-overview", tab.getUrlName());
+        // Same URL as the action so the experimental tab bar stays on the action page (l:run-subpage).
+        assertEquals("interactive-view", tab.getUrlName());
+        InteractiveViewRunAction viewAction = b.getAction(InteractiveViewRunAction.class);
+        assertNotNull(viewAction, "the view run action attaches once the build has a review");
+        assertTrue(
+                firstByUrlName(b, InteractiveViewRunAction.URL_NAME) instanceof InteractiveViewRunAction,
+                "Stapler must bind the view run action, not the widget-only tab");
+        assertEquals("1", viewAction.getBadge().getText());
+        assertEquals("1", tab.getBadge().getText());
+        assertEquals("Interactive View", viewAction.getDisplayName());
         assertTabRendersInPlace(j, b, InteractiveViewRunTab.URL_NAME, ".iv-app");
 
         // Classic viewer: no native tab; the persisted view action stays reachable via the sidebar/overflow.

@@ -148,8 +148,7 @@
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>script-security</artifactId>
     </dependency>
-    <!-- structs is not declared: @Symbol comes in transitively via workflow-step-api / pipeline-input-step
-         (hosting review, mawinter69 2026-09-15). -->
+    <!-- structs is not declared: @Symbol is provided by Jenkins core (hosting review, mawinter69). -->
     <!-- FlowNode + PauseAction for the anchored console link / "Paused" flow-graph marker (§console audit). -->
     <dependency>
       <groupId>org.jenkins-ci.plugins.workflow</groupId>

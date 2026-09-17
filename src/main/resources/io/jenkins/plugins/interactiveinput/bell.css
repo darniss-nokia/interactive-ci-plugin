@@ -99,14 +99,9 @@
 }
 
 /*
- * Sidebar task-link pending count: a native Jenkins pill (jenkins-badge) inserted client-side by
- * bell.js (mountTaskLink) rather than "(N)" appended to the label text. This only adds the spacing
- * next to the label; the pill's colours/shape come from core's jenkins-badge classes.
+ * Sidebar task-link pending count: marker class for the live pill. Alignment is core's
+ * task-icon-badge (right of the .task row); colours/shape are jenkins-badge. No extra left/right CSS.
  */
-.ii-task-badge {
-  margin-left: 6px;
-  vertical-align: middle;
-}
 
 .ii-dropdown {
   position: absolute;

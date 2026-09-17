@@ -6,17 +6,11 @@
 -->
 
 <!--
-  Dedicated per-build Interactive Output page (reached from the run's left-sidebar link). Renders every
-  report published by this build as KPI cards + a full table. Card/table classes come from the global
-  bell.css; output.css adds the page scaffolding. Links out to the per-job trend chart.
+  Dedicated per-build Interactive Output page (reached from the run's left-sidebar link and the
+  experimental tab bar). l:run-subpage keeps the experimental build chrome.
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
-  <l:layout title="Interactive Output - ${it.run.fullDisplayName}">
-    <l:side-panel>
-      <st:include it="${it.run}" page="sidepanel.jelly" optional="true"/>
-    </l:side-panel>
-    <l:main-panel>
-      <st:include page="content.jelly"/>
-    </l:main-panel>
-  </l:layout>
+  <l:run-subpage>
+    <st:include page="content.jelly"/>
+  </l:run-subpage>
 </j:jelly>

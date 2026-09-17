@@ -19,6 +19,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jenkins.management.Badge;
+import jenkins.model.Badgeable;
 import jenkins.model.TransientActionFactory;
 
 /**
@@ -34,7 +36,7 @@ import jenkins.model.TransientActionFactory;
  * <p>All permission and existence checks live in the {@link ViewStore}/REST layer; this action only
  * exposes metadata for its Jelly views.
  */
-public class InteractiveViewRunAction implements BuildBadgeAction {
+public class InteractiveViewRunAction implements BuildBadgeAction, Badgeable {
 
     private static final Logger LOGGER = Logger.getLogger(InteractiveViewRunAction.class.getName());
 
@@ -57,6 +59,14 @@ public class InteractiveViewRunAction implements BuildBadgeAction {
 
     @NonNull
     public Run<?, ?> getRun() {
+        return run;
+    }
+
+    /**
+     * @return the owning run. Required by core's {@code l:run-subpage} ({@code it.object}).
+     */
+    @NonNull
+    public Run<?, ?> getObject() {
         return run;
     }
 
@@ -96,9 +106,8 @@ public class InteractiveViewRunAction implements BuildBadgeAction {
 
     /**
      * @return the OPEN, notify-enabled reviews on this build the current viewer should act on (0 on any
-     *     store error), honouring the user-scope switch. Surfaces as the {@code (N)} suffix on
-     *     {@link #getDisplayName()} in the experimental "more actions" menu; the classic sidebar shows it
-     *     as a live {@code bell.js} pill instead.
+     *     store error), honouring the user-scope switch. Surfaces as {@link #getBadge()} on the classic
+     *     sidebar and experimental tab bar.
      */
     public int getPendingCount() {
         try {
@@ -120,15 +129,23 @@ public class InteractiveViewRunAction implements BuildBadgeAction {
     }
 
     /**
-     * @return "Interactive View", suffixed with the pending count {@code (N)} when this build has open
-     *     notifications — so the experimental "more actions" overflow menu shows the count. The classic
-     *     sidebar resets this to plain text and renders the count as a live {@code bell.js} pill instead.
+     * @return the stable sidebar / overflow label. The pending count is {@link #getBadge()}, not a
+     *     {@code (N)} suffix.
      */
     @Override
     @NonNull
     public String getDisplayName() {
-        int n = getPendingCount();
-        return n > 0 ? "Interactive View (" + n + ")" : "Interactive View";
+        return "Interactive View";
+    }
+
+    /**
+     * @return a numeric DANGER badge while this build has open reviews the current viewer should act
+     *     on; {@code null} at zero.
+     */
+    @Override
+    @CheckForNull
+    public Badge getBadge() {
+        return PendingCountBadge.of(getPendingCount());
     }
 
     @Override

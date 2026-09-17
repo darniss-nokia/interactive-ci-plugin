@@ -8,6 +8,8 @@ docs/AGENTIC_CI_JENKINS_PLUGIN_ANALYSIS.md
 docs/INTERACTIVE_VIEW.md
 sample_ai/
 .cursor
+review-comments-addressing/
+scan-reports/
 
 # Maven
 target/

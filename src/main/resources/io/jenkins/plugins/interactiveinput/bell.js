@@ -1603,8 +1603,8 @@
   // ============================ live sidebar task-link count ============================
   // Keeps a left-sidebar link's count badge live (Point 2). Core renders these links server-side once
   // per page load, so without this the count only refreshes on reload. The always-present
-  // [data-ii-tasklink] controller polls the scoped count, renders it as a native jenkins-badge pill next
-  // to the label (not "(N)" text), hides the row at zero, and best-effort reveals it when the first item
+  // [data-ii-tasklink] controller polls the scoped count, updates the right-aligned task-icon-badge
+  // (core Badgeable pill, not "(N)" text), hides the row at zero, and best-effort reveals it when the first item
   // appears. One implementation serves both the "Interactive Input" link (questions; kinds job/build)
   // and the "Interactive View" link (reviews; kinds view-job/view-build) — see the kind switch below.
   function mountTaskLink(mount) {
@@ -1674,19 +1674,45 @@
       link.appendChild(document.createTextNode(text));
     }
 
-    // Render the pending count as a native Jenkins pill (jenkins-badge), like the "Updates N" badge
-    // on the Plugins page, instead of appending "(N)" to the label. Visibility is toggled via the
-    // core jenkins-hidden class so we never hard-code a display value.
+    // Render the pending count as a native Jenkins pill on the RIGHT of the .task row. Core's
+    // Badgeable.getBadge() already emits a sibling .task-icon-badge; reuse that when present. When
+    // injecting (cloned rows / no server badge yet), append a sibling of the <a> — never a child of
+    // the link, which sat the pill against the label. Visibility uses jenkins-hidden so we never
+    // hard-code a display value.
+    function findBadge(link) {
+      const row = rowOf(link);
+      return (
+        row.querySelector(".ii-task-badge") ||
+        row.querySelector(".task-icon-badge") ||
+        link.querySelector(".ii-task-badge")
+      );
+    }
+
     function setBadge(link, n) {
-      let badge = link.querySelector(".ii-task-badge");
+      const row = rowOf(link);
+      let badge = findBadge(link);
       if (n > 0) {
         if (!badge) {
-          badge = el("span", { cls: "ii-task-badge jenkins-badge jenkins-!-danger-color" });
-          link.appendChild(badge);
+          badge = el("span", { cls: "ii-task-badge task-icon-badge jenkins-badge jenkins-!-danger-color" });
+          row.appendChild(badge);
+        } else {
+          badge.classList.add("ii-task-badge");
+          badge.classList.add("task-icon-badge");
         }
-        badge.textContent = n > 99 ? "99+" : String(n);
+        const textTarget =
+          badge.classList.contains("jenkins-badge") && !badge.querySelector(".jenkins-badge")
+            ? badge
+            : badge.querySelector(".jenkins-badge") || badge;
+        if (textTarget === badge) {
+          badge.classList.add("jenkins-badge");
+          badge.classList.add("jenkins-!-danger-color");
+        }
+        textTarget.textContent = n > 99 ? "99+" : String(n);
         badge.setAttribute("aria-label", n + " pending");
         badge.classList.remove("jenkins-hidden");
+        if (textTarget !== badge) {
+          textTarget.classList.remove("jenkins-hidden");
+        }
       } else if (badge) {
         badge.classList.add("jenkins-hidden");
       }

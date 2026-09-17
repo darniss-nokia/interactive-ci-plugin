@@ -12,15 +12,11 @@
   classes come from the global bell.css, output.css adds page + chart scaffolding.
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
-  <l:layout title="Interactive Output - ${it.job.fullDisplayName}">
-    <l:side-panel>
-      <st:include it="${it.job}" page="sidepanel.jelly" optional="true"/>
-    </l:side-panel>
-    <l:main-panel>
+  <l:job-subpage>
       <st:adjunct includes="io.jenkins.plugins.echarts"/>
       <st:adjunct includes="io.jenkins.plugins.interactiveinput.output"/>
+      <l:app-bar title="Interactive Output"/>
       <div class="io-page">
-        <h1>Interactive Output</h1>
         <p class="io-page-sub">Statistics published across builds of <strong>${it.job.fullDisplayName}</strong>.</p>
 
         <j:choose>
@@ -83,6 +79,5 @@
           </j:otherwise>
         </j:choose>
       </div>
-    </l:main-panel>
-  </l:layout>
+  </l:job-subpage>
 </j:jelly>
