@@ -44,7 +44,11 @@ public class InteractiveInputJobProperty extends OptionalJobProperty<Job<?, ?>> 
     @CheckForNull
     private String webhookCredentialsId;
 
-    @NonNull
+    /**
+     * Channel list. Not {@code @NonNull}: XStream leaves this {@code null} when the XML has no
+     * {@code <channels>} (legacy boolean form in {@link InteractiveInputJobPropertyTest}).
+     * {@link #readResolve()} and {@link #getChannels()} treat that as empty.
+     */
     private List<NotificationChannel> channels = new ArrayList<>();
 
     @DataBoundConstructor

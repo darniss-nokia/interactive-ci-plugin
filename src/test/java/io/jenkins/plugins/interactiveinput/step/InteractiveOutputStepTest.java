@@ -33,12 +33,19 @@ import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 class InteractiveOutputStepTest {
 
     @Test
-    void stepAndMetricShipConfigForms(JenkinsRule j) {
+    void stepAndMetricShipConfigForms(JenkinsRule j) throws Exception {
         StepDescriptor d = (StepDescriptor) j.jenkins.getDescriptor(InteractiveOutputStep.class);
         assertNotNull(d, "interactiveOutput step descriptor must be registered");
         assertEquals("interactiveOutput", d.getFunctionName());
         assertNotNull(d.getConfigPage(), "interactiveOutput must ship a config.jelly for the Snippet Generator");
         assertNotNull(j.jenkins.getDescriptor(Metric.class), "Metric must be a Describable with a Descriptor");
+        InteractiveOutputStep.DescriptorImpl out = (InteractiveOutputStep.DescriptorImpl) d;
+        assertEquals(4, out.doFillChartTypeItems().size(), "chart-type dropdown lists the four chart kinds");
+        assertNotNull(
+                InteractiveOutputStep.DescriptorImpl.class
+                        .getMethod("doFillChartTypeItems")
+                        .getAnnotation(org.kohsuke.stapler.verb.POST.class),
+                "chart-type fill must be @POST (Jenkins Security Scan CSRF)");
     }
 
     @Test

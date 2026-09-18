@@ -33,11 +33,18 @@ import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 class InteractiveViewStepTest {
 
     @Test
-    void stepShipsConfigFormForTheSnippetGenerator(JenkinsRule j) {
+    void stepShipsConfigFormForTheSnippetGenerator(JenkinsRule j) throws Exception {
         StepDescriptor d = (StepDescriptor) j.jenkins.getDescriptor(InteractiveViewStep.class);
         assertNotNull(d, "interactiveView step descriptor must be registered");
         assertEquals("interactiveView", d.getFunctionName());
         assertNotNull(d.getConfigPage(), "interactiveView must ship a config.jelly so the Snippet Generator works");
+        InteractiveViewStep.DescriptorImpl view = (InteractiveViewStep.DescriptorImpl) d;
+        assertEquals(2, view.doFillModeItems().size(), "mode dropdown is review + info");
+        assertNotNull(
+                InteractiveViewStep.DescriptorImpl.class
+                        .getMethod("doFillModeItems")
+                        .getAnnotation(org.kohsuke.stapler.verb.POST.class),
+                "mode fill must be @POST (Jenkins Security Scan CSRF)");
     }
 
     @Test

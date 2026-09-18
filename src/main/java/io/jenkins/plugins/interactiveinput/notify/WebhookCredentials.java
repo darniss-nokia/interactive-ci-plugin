@@ -29,14 +29,18 @@ public final class WebhookCredentials {
      * Populate the webhook credentials dropdown. Empty when the caller cannot configure the item.
      *
      * @param item the job being configured, or {@code null} on a global form
-     * @param current the currently selected credentials id (kept visible via includeCurrentValue)
+     * @param current the currently selected credentials id (kept visible via includeCurrentValue);
+     *     {@code null} is treated as empty because {@code includeCurrentValue} is {@code @NonNull}
      */
     @NonNull
     public static ListBoxModel listBox(@CheckForNull Item item, @CheckForNull String current) {
+        // AbstractIdCredentialsListBoxModel.includeCurrentValue is @NonNull; empty string is the
+        // same as null for that method (it uses StringUtils.isEmpty).
+        String selected = current != null ? current : "";
         StandardListBoxModel result = new StandardListBoxModel();
         if (item == null) {
             if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
-                return result.includeCurrentValue(current);
+                return result.includeCurrentValue(selected);
             }
             return result.includeEmptyValue()
                     .includeMatchingAs(
@@ -45,10 +49,10 @@ public final class WebhookCredentials {
                             StringCredentials.class,
                             Collections.emptyList(),
                             CredentialsMatchers.instanceOf(StringCredentials.class))
-                    .includeCurrentValue(current);
+                    .includeCurrentValue(selected);
         }
         if (!item.hasPermission(Item.CONFIGURE)) {
-            return result.includeCurrentValue(current);
+            return result.includeCurrentValue(selected);
         }
         return result.includeEmptyValue()
                 .includeMatchingAs(
@@ -57,7 +61,7 @@ public final class WebhookCredentials {
                         StringCredentials.class,
                         Collections.emptyList(),
                         CredentialsMatchers.instanceOf(StringCredentials.class))
-                .includeCurrentValue(current);
+                .includeCurrentValue(selected);
     }
 
     /**
@@ -78,7 +82,7 @@ public final class WebhookCredentials {
         if (cred == null) {
             return null;
         }
-        hudson.util.Secret secret = cred.getSecret();
-        return secret == null ? null : secret.getPlainText();
+        // StringCredentials.getSecret() is @NonNull.
+        return cred.getSecret().getPlainText();
     }
 }

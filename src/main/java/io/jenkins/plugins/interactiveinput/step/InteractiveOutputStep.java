@@ -17,12 +17,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.verb.POST;
 
 /**
  * The {@code interactiveOutput} pipeline step: publish per-build statistics (cost, carbon footprint,
@@ -118,9 +120,14 @@ public class InteractiveOutputStep extends Step implements Serializable {
             return "Publish interactive output statistics";
         }
 
-        /** Populates the Chart type dropdown in the Snippet Generator form. */
+        /**
+         * Populates the Chart type dropdown in the Snippet Generator form. {@code @POST} for the
+         * Security Scan CSRF check; {@link Jenkins#READ} is the Snippet Generator's own gate.
+         */
+        @POST
         @NonNull
         public ListBoxModel doFillChartTypeItems() {
+            Jenkins.get().checkPermission(Jenkins.READ);
             ListBoxModel m = new ListBoxModel();
             m.add("Line (trend across builds)", MetricReport.CHART_LINE);
             m.add("Bar (trend across builds)", MetricReport.CHART_BAR);

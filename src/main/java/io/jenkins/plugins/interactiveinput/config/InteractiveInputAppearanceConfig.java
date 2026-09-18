@@ -12,10 +12,12 @@ import java.util.List;
 import jenkins.appearance.AppearanceCategory;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.GlobalConfigurationCategory;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.verb.POST;
 
 /**
  * Appearance-facing configuration for the plugin's notification surfaces (§6.4).
@@ -253,9 +255,16 @@ public class InteractiveInputAppearanceConfig extends GlobalConfiguration {
         return c != null ? c.getIconClassName() : iconClassName(DEFAULT_ICON);
     }
 
-    /** Populates the icon dropdown on the Appearance config page (label ⇒ stem). */
+    /**
+     * Populates the icon dropdown on the Appearance config page (label ⇒ stem). {@code @POST} for
+     * the Security Scan CSRF check; {@link Jenkins#ADMINISTER} because this page is overall config.
+     */
+    @POST
     @NonNull
     public ListBoxModel doFillIconItems() {
+        if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+            return new ListBoxModel();
+        }
         ListBoxModel m = new ListBoxModel();
         m.add("Speech bubble — awaiting your response", "chatbubble-ellipses");
         m.add("Raised hand — human action needed", "hand-left");

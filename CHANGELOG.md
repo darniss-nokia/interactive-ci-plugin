@@ -15,6 +15,11 @@ All notable changes to this project are documented here. The format follows
 - Experimental run tabs share the action URL (`interactive-input` / `interactive-view` / `interactive-output`); the former `*-overview` routes are gone. Tabs are widget-only; Input/View tabs expose `getBadge()` on the tab bar.
 - The notification centre is a primary `RootAction` header button (`#root-action-NotificationBellAction`). `bell.js` only attaches the live pending-count badge, using `jenkins-badge jenkins-!-danger-color`.
 - The empty Interactive Output job page uses a design-library `jenkins-alert` banner.
+- Form-fill web methods (`doFill*` for Slack/Teams webhook credentials, Appearance icon, and Snippet Generator mode/chart type) are `@POST`, matching the Jenkins Security Scan CSRF check. Icon fill requires `Overall/Administer`; the snippet-generator fills require `Overall/Read`. Slack/Teams fills still enumerate credentials only with `Item/Configure` (or `Overall/Administer` when there is no item).
+
+### Fixed
+- SpotBugs `RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE` on `InteractiveInputJobProperty.channels`: the field is no longer `@NonNull` because XStream leaves it null on legacy XML; `getChannels()` / `readResolve()` still treat that as empty.
+- SpotBugs `NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE` / redundant `Secret` null-check in `WebhookCredentials`: `includeCurrentValue` is `@NonNull` (null current becomes `""`); `StringCredentials.getSecret()` is `@NonNull`.
 
 ### Added
 - **Notify-only outbound channels** (email, Microsoft Teams incoming webhook, Slack incoming webhook) as a

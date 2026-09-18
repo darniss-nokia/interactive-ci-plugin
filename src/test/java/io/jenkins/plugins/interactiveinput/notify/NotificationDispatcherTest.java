@@ -210,7 +210,21 @@ class NotificationDispatcherTest {
                     m.stream().anyMatch(o -> "hidden-hook".equals(o.value)),
                     () -> "configurer should see the secret-text credential; got "
                             + m.stream().map(o -> o.value).toList());
+            ListBoxModel absent = d.doFillWebhookCredentialsIdItems(p, null);
+            assertTrue(
+                    absent.stream().anyMatch(o -> "hidden-hook".equals(o.value)),
+                    "absent QueryParameter (null current id) must still list credentials for a configurer");
         }
+        assertNotNull(
+                SlackChannel.DescriptorImpl.class
+                        .getMethod("doFillWebhookCredentialsIdItems", Item.class, String.class)
+                        .getAnnotation(org.kohsuke.stapler.verb.POST.class),
+                "Slack fill must be @POST (Jenkins Security Scan CSRF)");
+        assertNotNull(
+                TeamsChannel.DescriptorImpl.class
+                        .getMethod("doFillWebhookCredentialsIdItems", Item.class, String.class)
+                        .getAnnotation(org.kohsuke.stapler.verb.POST.class),
+                "Teams fill must be @POST (Jenkins Security Scan CSRF)");
     }
 
     @Test

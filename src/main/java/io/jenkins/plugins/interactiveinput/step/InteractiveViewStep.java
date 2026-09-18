@@ -15,6 +15,7 @@ import io.jenkins.plugins.interactiveinput.config.InteractiveInputGlobalConfig;
 import io.jenkins.plugins.interactiveinput.view.ReviewDocument;
 import java.io.Serializable;
 import java.util.Set;
+import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
@@ -22,6 +23,7 @@ import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.verb.POST;
 
 /**
  * The {@code interactiveView} pipeline step: snapshot a generated file into the plugin's durable store
@@ -274,9 +276,14 @@ public class InteractiveViewStep extends Step implements Serializable {
             return "Publish a file for interactive review";
         }
 
-        /** Populates the Mode dropdown in the Snippet Generator form. */
+        /**
+         * Populates the Mode dropdown in the Snippet Generator form. {@code @POST} for the Security
+         * Scan CSRF check; {@link Jenkins#READ} is the Snippet Generator's own gate.
+         */
+        @POST
         @NonNull
         public ListBoxModel doFillModeItems() {
+            Jenkins.get().checkPermission(Jenkins.READ);
             ListBoxModel m = new ListBoxModel();
             m.add("Review (approve / reject / acknowledge / request changes)", ReviewDocument.MODE_REVIEW);
             m.add("Info (read-only viewer, no decision)", ReviewDocument.MODE_INFO);

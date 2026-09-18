@@ -127,7 +127,7 @@ class InteractiveInputAppearanceConfigTest {
     }
 
     @Test
-    void dropdownOffersExactlyTheWhitelistedIcons(JenkinsRule j) {
+    void dropdownOffersExactlyTheWhitelistedIcons(JenkinsRule j) throws Exception {
         InteractiveInputAppearanceConfig c = InteractiveInputAppearanceConfig.get();
         assertNotNull(c);
         ListBoxModel items = c.doFillIconItems();
@@ -137,5 +137,10 @@ class InteractiveInputAppearanceConfigTest {
                     InteractiveInputAppearanceConfig.ICON_CHOICES.contains(o.value),
                     () -> "dropdown offers a non-whitelisted icon: " + o.value);
         }
+        assertNotNull(
+                InteractiveInputAppearanceConfig.class
+                        .getMethod("doFillIconItems")
+                        .getAnnotation(org.kohsuke.stapler.verb.POST.class),
+                "icon fill must be @POST (Jenkins Security Scan CSRF)");
     }
 }

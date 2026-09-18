@@ -19,6 +19,7 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.POST;
 
 /**
  * Notify-only Microsoft Teams incoming webhook. The webhook URL is a Secret-text credential, never
@@ -92,9 +93,12 @@ public class TeamsChannel extends NotificationChannel {
         }
 
         /**
-         * Secret-text credentials dropdown. Permission-checked: {@link Item#CONFIGURE} on the job, or
+         * Secret-text credentials dropdown. {@code @POST} so the Jenkins Security Scan CSRF check
+         * accepts it (core already POSTs {@code f:select} fills). Permission-checked inside
+         * {@link WebhookCredentials#listBox}: {@link Item#CONFIGURE} on the job, or
          * {@link Jenkins#ADMINISTER} when there is no item. Does not contact the webhook.
          */
+        @POST
         @NonNull
         public ListBoxModel doFillWebhookCredentialsIdItems(
                 @AncestorInPath Item item, @QueryParameter String webhookCredentialsId) {
