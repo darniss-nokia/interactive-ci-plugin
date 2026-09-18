@@ -7,7 +7,7 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Changed
-- Plugin BOM aligned to the latest `bom-2.568.x` (`7020.vf38cb_40380d1`) so the hosting checker stays clean.
+- Plugin BOM aligned to the latest `bom-2.568.x` (`7046.v43536164769c`) so the hosting checker stays clean.
 - Jenkins core target is **2.568.3** (hosting review).
 - Dropped the direct `structs` plugin dependency; `@Symbol` is provided by Jenkins core.
 - Job and run Interactive Input / Interactive View actions implement `Badgeable.getBadge()` for the pending count and no longer put `(N)` in `getDisplayName()`. Live sidebar pills use core's `task-icon-badge` on the `.task` row.
