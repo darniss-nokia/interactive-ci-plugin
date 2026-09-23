@@ -60,9 +60,10 @@ src/test/java/...               JUnit 5 suite (JenkinsRule + pure unit)
 
 1. Branch from the default branch: `feature/<short-name>` or `fix/<short-name>`.
 2. Use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, …).
-3. Ensure `mvn -B -ntp clean verify` is green and update `CHANGELOG.md` under **Unreleased**.
-4. Open a PR describing **evidence → analysis → decision → implementation**, with reproduction/verification steps.
-5. For security-sensitive changes, request a security review and mention the threat considered.
+3. Ensure `mvn -B -ntp clean verify` is green.
+4. Open a PR whose title is the release-note line, describing **evidence → analysis → decision → implementation**, with reproduction/verification steps. Do not edit a changelog file.
+5. Label the PR before merge. Continuous delivery drafts [GitHub Releases](https://github.com/jenkinsci/interactive-ci-plugin/releases) with [Release Drafter](https://github.com/jenkinsci/.github/blob/master/.github/release-drafter.yml) from merged PR titles and labels. Those releases are what the releases tab on plugins.jenkins.io shows. Use a label from that config, for example `enhancement`, `bug`, `breaking`, or `developer`. `documentation`, `chore`, `internal`, `maintenance`, `test`, `tests`, and `dependencies` are categorized but do not by themselves mark a draft as worth releasing. `skip-changelog` and `no-changelog` leave the PR out of the notes.
+6. For security-sensitive changes, request a security review and mention the threat considered.
 
 ## Reporting bugs / security issues
 

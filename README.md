@@ -778,7 +778,7 @@ Behind a corporate proxy, configure `~/.m2/settings.xml` and point Maven at `htt
 
 | Doc | What's in it |
 |---|---|
-| [`CHANGELOG.md`](CHANGELOG.md) | Release history (Keep a Changelog). |
+| [GitHub Releases](https://github.com/jenkinsci/interactive-ci-plugin/releases) | Release notes. Continuous delivery drafts them with Release Drafter from merged pull-request titles and labels. The releases tab on plugins.jenkins.io shows those GitHub releases. |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Dev setup, coding standards, PR flow. |
 | [`docs/BILL_OF_MATERIALS.md`](docs/BILL_OF_MATERIALS.md) | Full dependency + build BOM with versions and licenses. |
 | [`docs/LICENSING.md`](docs/LICENSING.md) | Why MIT, and a primer on OSS license families. |

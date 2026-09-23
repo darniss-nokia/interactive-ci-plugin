@@ -22,7 +22,7 @@ import jenkins.util.Timer;
 
 /**
  * Queues notify-only outbound delivery off the pipeline thread. Listeners only snapshot an event and
- * {@link Timer#submit}; HTTP/SMTP runs on the Jenkins timer pool under {@link ACL#SYSTEM2}.
+ * {@link Timer#get()}{@code .submit}; HTTP/SMTP runs on the Jenkins timer pool under {@link ACL#SYSTEM2}.
  */
 public final class NotificationDispatcher {
 

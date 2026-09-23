@@ -26,7 +26,7 @@ import jenkins.model.TransientActionFactory;
 
 /**
  * Native "Interactive View" card for the experimental run overview — the review counterpart of
- * {@link InteractiveOutputRunTab}. Rendered by core's {@code jenkins/run/OverviewTab/index.jelly}, which
+ * {@link io.jenkins.plugins.interactiveinput.output.InteractiveOutputRunTab}. Rendered by core's {@code jenkins/run/OverviewTab/index.jelly}, which
  * iterates {@code Run#getRunTabs()} and includes each {@link Tab}'s {@code widget.jelly} on the overview
  * grid. It shows a compact, server-rendered "mini" of the build's {@code interactive-view/} page (the
  * list of reviews, each with its status and comment count), so reviewers see the reviews at a glance
